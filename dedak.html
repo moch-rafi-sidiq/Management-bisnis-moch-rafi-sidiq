@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>Bisnis Dedak</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .slide-up {
+            animation: slideUp 0.25s ease-out;
+        }
+        @keyframes slideUp {
+            from {
+                transform: translateY(40px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        .modal-backdrop {
+            backdrop-filter: blur(4px);
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .item-card:active {
+            transform: scale(0.98);
+        }
+        .tab-btn.active {
+            background: #b8860b;
+            color: white;
+        }
+        .tab-btn {
+            transition: all 0.15s;
+        }
+        .tab-btn:active {
+            transform: scale(0.95);
+        }
+        .filter-btn.active {
+            background: #2d2a24;
+            color: #f5ede2;
+            border-color: #2d2a24;
+        }
+        .filter-btn {
+            transition: all 0.15s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .filter-btn:active {
+            transform: scale(0.95);
+        }
+        .status-badge {
+            padding: 2px 12px;
+            border-radius: 30px;
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+        .status-badge.done {
+            background: #d4edda;
+            color: #1f7a47;
+        }
+        .status-badge.pending {
+            background: #f1e5cf;
+            color: #8b6f3f;
+        }
+    </style>
+</head>
+<body class="bg-[#f2ede6] font-sans antialiased pb-24">
+
+    <div class="max-w-md mx-auto px-4 pt-4">
+
+        <!-- ===== HEADER ===== -->
+        <header class="flex justify-between items-center pb-4 mb-4 border-b-2 border-[#d6cbbc]">
+            <h1 class="text-xl font-bold text-[#3d352b]">
+                <span class="text-2xl"></span> Bisnis Dedak
+            </h1>
+            <span class="bg-[#3d352b] text-[#f5ede2] px-3 py-1 rounded-full text-xs font-semibold" id="totalItems">
+                0 item
+            </span>
+        </header>
+
+        <!-- ===== TAB NAVIGASI ===== -->
+        <div class="flex gap-2 mb-4">
+            <button class="tab-btn flex-1 py-2.5 rounded-xl font-semibold text-sm bg-white border border-[#e8dfd3] text-[#4d4337] active" data-tab="pengambilan">
+                📦 Pengambilan
+            </button>
+            <button class="tab-btn flex-1 py-2.5 rounded-xl font-semibold text-sm bg-white border border-[#e8dfd3] text-[#4d4337]" data-tab="tempat">
+                🏪 Tempat
+            </button>
+            <button class="tab-btn flex-1 py-2.5 rounded-xl font-semibold text-sm bg-white border border-[#e8dfd3] text-[#4d4337]" data-tab="rekap">
+                📊 Rekap
+            </button>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAB PENGAMBILAN -->
+        <!-- ============================================================ -->
+        <div id="tabPengambilan">
+
+            <!-- TOMBOL TAMBAH -->
+            <button id="btnTambahPengambilan" class="w-full bg-[#2d7a4b] hover:bg-[#1f6a3b] active:scale-95 transition text-white font-semibold py-3.5 rounded-2xl flex items-center justify-center gap-2 mb-4">
+                <span class="text-xl">➕</span> Tambah Pengambilan
+            </button>
+
+            <!-- FILTER PENGAMBILAN -->
+            <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-3 mb-3" id="filterPengambilanWrap">
+                <!-- diisi JS -->
+            </div>
+
+            <!-- JUDUL LIST -->
+            <div class="flex justify-between items-center mb-3">
+                <span class="font-semibold text-[#4d4337] text-sm" id="judulPengambilan">📋 Pengambilan</span>
+                <span class="text-xs text-[#8a7d6b]" id="jumlahPengambilan">0 item</span>
+            </div>
+
+            <!-- LIST -->
+            <div id="pengambilanList" class="space-y-2">
+                <!-- diisi JS -->
+            </div>
+
+            <!-- TOMBOL LIHAT SEMUA -->
+            <button id="btnLihatSemuaPengambilan" class="w-full mt-4 py-3 text-[#8a7d6b] text-sm font-medium border-2 border-dashed border-[#d6cbbc] rounded-2xl hover:bg-[#e8dfd3] active:scale-95 transition hidden">
+                📊 Lihat Semua Pengambilan
+            </button>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAB TEMPAT -->
+        <!-- ============================================================ -->
+        <div id="tabTempat" class="hidden">
+
+            <!-- TOMBOL TAMBAH -->
+            <button id="btnTambahTempat" class="w-full bg-[#b8860b] hover:bg-[#9e740a] active:scale-95 transition text-white font-semibold py-3.5 rounded-2xl flex items-center justify-center gap-2 mb-4">
+                <span class="text-xl">➕</span> Tambah Transaksi Tempat
+            </button>
+
+            <!-- FILTER TEMPAT -->
+            <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-3 mb-3" id="filterTempatWrap">
+                <!-- diisi JS -->
+            </div>
+
+            <!-- JUDUL LIST -->
+            <div class="flex justify-between items-center mb-3">
+                <span class="font-semibold text-[#4d4337] text-sm" id="judulTempat">🏪 Transaksi Tempat</span>
+                <span class="text-xs text-[#8a7d6b]" id="jumlahTempat">0 item</span>
+            </div>
+
+            <!-- LIST -->
+            <div id="tempatList" class="space-y-2">
+                <!-- diisi JS -->
+            </div>
+
+            <!-- TOMBOL LIHAT SEMUA -->
+            <button id="btnLihatSemuaTempat" class="w-full mt-4 py-3 text-[#8a7d6b] text-sm font-medium border-2 border-dashed border-[#d6cbbc] rounded-2xl hover:bg-[#e8dfd3] active:scale-95 transition hidden">
+                📊 Lihat Semua Transaksi Tempat
+            </button>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAB REKAP -->
+        <!-- ============================================================ -->
+        <div id="tabRekap" class="hidden">
+
+            <!-- REKAP CARD -->
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-[#e8dfd3] space-y-3">
+                <h2 class="font-semibold text-[#2d2a24] text-lg">📊 Ringkasan Keuangan</h2>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-[#f8f3eb] rounded-xl p-3 text-center">
+                        <p class="text-xs text-[#8a7d6b]">Total Profit</p>
+                        <p class="font-bold text-lg text-green-700" id="totalProfit">Rp 0</p>
+                    </div>
+                    <div class="bg-[#f8f3eb] rounded-xl p-3 text-center">
+                        <p class="text-xs text-[#8a7d6b]">Total Transaksi</p>
+                        <p class="font-bold text-lg" id="totalTransaksiTempat">0</p>
+                    </div>
+                    <div class="bg-[#f8f3eb] rounded-xl p-3 text-center">
+                        <p class="text-xs text-[#8a7d6b]">Total Pengambilan</p>
+                        <p class="font-bold text-lg" id="totalPengambilanCount">0</p>
+                    </div>
+                    <div class="bg-[#f8f3eb] rounded-xl p-3 text-center">
+                        <p class="text-xs text-[#8a7d6b]">Selesai / Total</p>
+                        <p class="font-bold text-lg" id="statusPengambilan">0/0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REKAP DETAIL -->
+            <div class="bg-white rounded-2xl p-4 mt-4 shadow-sm border border-[#e8dfd3]">
+                <h2 class="font-semibold text-[#2d2a24] text-sm mb-2">💰 Detail Keuangan</h2>
+                <div class="space-y-2 text-sm" id="rekapDetail">
+                    <!-- diisi JS -->
+                </div>
+            </div>
+
+            <!-- BUTTON RESET -->
+            <button id="btnResetData" class="w-full mt-4 py-3 text-red-600 text-sm font-medium border-2 border-red-300 rounded-2xl hover:bg-red-50 active:scale-95 transition">
+                Reset Semua Data
+            </button>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- MODAL PENGAMBILAN -->
+        <!-- ============================================================ -->
+        <div id="modalPengambilanOverlay" class="fixed inset-0 bg-black/40 modal-backdrop flex items-end md:items-center justify-center px-4 z-50 hidden">
+            <div class="bg-white rounded-3xl rounded-b-3xl p-6 w-full max-w-md slide-up">
+                <h2 class="text-xl font-semibold text-[#2d2a24] mb-4" id="modalPengambilanTitle">Tambah Pengambilan</h2>
+
+                <label class="text-xs font-semibold text-[#5d5242] block mt-3 mb-1">Nomor Urut</label>
+                <input type="number" id="inputPengambilanNomor" placeholder="e.g. 1" class="w-full px-4 py-3 bg-[#faf7f2] border border-[#ddd2c2] rounded-xl text-sm focus:outline-none focus:border-[#b8860b] focus:bg-white" />
+
+                <label class="text-xs font-semibold text-[#5d5242] block mt-3 mb-1">Tanggal</label>
+                <input type="text" id="inputPengambilanTgl" placeholder="e.g. 25 Maret 2026" class="w-full px-4 py-3 bg-[#faf7f2] border border-[#ddd2c2] rounded-xl text-sm focus:outline-none focus:border-[#b8860b] focus:bg-white" />
+
+                <label class="text-xs font-semibold text-[#5d5242] block mt-3 mb-1">Status</label>
+                <select id="inputPengambilanStatus" class="w-full px-4 py-3 bg-[#faf7f2] border border-[#ddd2c2] rounded-xl text-sm focus:outline-none focus:border-[#b8860b] focus:bg-white">
+                    <option value="done">✅ Selesai</option>
+                    <option value="pending">⏳ Menunggu</option>
+                </select>
+
+                <div class="flex gap-3 mt-5">
+                    <button id="btnBatalPengambilan" class="flex-1 bg-[#e8dfd3] hover:bg-[#d6cbbc] active:scale-95 transition text-[#4d4337] font-semibold py-3.5 rounded-xl">Batal</button>
+                    <button id="btnSimpanPengambilan" class="flex-1 bg-[#b8860b] hover:bg-[#9e740a] active:scale-95 transition text-white font-semibold py-3.5 rounded-xl">Simpan</button>
+                </div>
+
+                <button id="btnHapusPengambilan" class="w-full bg-red-500 hover:bg-red-600 active:scale-95 transition text-white font-semibold py-3.5 rounded-xl mt-3 hidden">
+                    Hapus Data
+                </button>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- MODAL TEMPAT -->
+        <!-- ============================================================ -->
+        <div id="modalTempatOverlay" class="fixed inset-0 bg-black/40 modal-backdrop flex items-end md:items-center justify-center px-4 z-50 hidden">
+            <div class="bg-white rounded-3xl rounded-b-3xl p-6 w-full max-w-md slide-up">
+                <h2 class="text-xl font-semibold text-[#2d2a24] mb-4" id="modalTempatTitle">Tambah Transaksi Tempat</h2>
+
+                <label class="text-xs font-semibold text-[#5d5242] block mt-3 mb-1">Nomor Urut</label>
+                <input type="number" id="inputTempatNomor" placeholder="e.g. 1" class="w-full px-4 py-3 bg-[#faf7f2] border border-[#ddd2c2] rounded-xl text-sm focus:outline-none focus:border-[#b8860b] focus:bg-white" />
+
+                <label class="text-xs font-semibold text-[#5d5242] block mt-3 mb-1">Tanggal</label>
+                <input type="text" id="inputTempatTgl" placeholder="e.g. 25 Maret 2026" class="w-full px-4 py-3 bg-[#faf7f2] border border-[#ddd2c2] rounded-xl text-sm focus:outline-none focus:border-[#b8860b] focus:bg-white" />
+
+                <label class="text-xs font-semibold text-[#5d5242] block mt-3 mb-1">Keterangan</label>
+                <input type="text" id="inputTempatDesc" placeholder="e.g. H. Ade harga 3.500 : 1 kuintal 400k ke om ganda P 50k" class="w-full px-4 py-3 bg-[#faf7f2] border border-[#ddd2c2] rounded-xl text-sm focus:outline-none focus:border-[#b8860b] focus:bg-white" />
+
+                <label class="text-xs font-semibold text-[#5d5242] block mt-3 mb-1">Profit (Rp)</label>
+                <input type="number" id="inputTempatProfit" placeholder="0" min="0" class="w-full px-4 py-3 bg-[#faf7f2] border border-[#ddd2c2] rounded-xl text-sm focus:outline-none focus:border-[#b8860b] focus:bg-white" />
+
+                <div class="flex gap-3 mt-5">
+                    <button id="btnBatalTempat" class="flex-1 bg-[#e8dfd3] hover:bg-[#d6cbbc] active:scale-95 transition text-[#4d4337] font-semibold py-3.5 rounded-xl">Batal</button>
+                    <button id="btnSimpanTempat" class="flex-1 bg-[#b8860b] hover:bg-[#9e740a] active:scale-95 transition text-white font-semibold py-3.5 rounded-xl">Simpan</button>
+                </div>
+
+                <button id="btnHapusTempat" class="w-full bg-red-500 hover:bg-red-600 active:scale-95 transition text-white font-semibold py-3.5 rounded-xl mt-3 hidden">
+                    🗑 Hapus Data
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ================================================================
+        //  DATA & STATE
+        // ================================================================
+        const DEDAK_KEY = 'bisnis_dedak';
+
+        let pengambilan = [];
+        let tempat = [];
+        let editingPengambilanId = null;
+        let editingTempatId = null;
+        let filterPengambilan = 'semua';
+        let filterTempat = 'semua';
+        let showAllPengambilan = false;
+        let showAllTempat = false;
+
+        // ================================================================
+        //  LOAD & SAVE
+        // ================================================================
+        function loadData() {
+            const stored = localStorage.getItem(DEDAK_KEY);
+            if (stored) {
+                try {
+                    const data = JSON.parse(stored);
+                    pengambilan = data.pengambilan || [];
+                    tempat = data.tempat || [];
+                } catch {
+                    pengambilan = [];
+                    tempat = [];
+                }
+            } else {
+                pengambilan = getPengambilanAwal();
+                tempat = getTempatAwal();
+                saveData();
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem(DEDAK_KEY, JSON.stringify({
+                pengambilan: pengambilan,
+                tempat: tempat
+            }));
+        }
+
+        // ================================================================
+        //  DATA AWAL
+        // ================================================================
+        function getPengambilanAwal() {
+            const data = [];
+            const push = (nomor, tgl, status) => {
+                data.push({ id: Date.now() + Math.random() * 1000 + data.length, nomor, tgl, status });
+            };
+
+            push(1, '25 Maret 2026', 'done');
+            push(2, '5 April 2026', 'done');
+            push(3, '7 April 2026', 'done');
+            push(4, '11 April 2026', 'done');
+            push(5, '17 April 2026', 'done');
+            push(6, '22 April 2026', 'done');
+            push(7, '3 Mei 2026', 'done');
+            push(8, '7 Mei 2026', 'done');
+            push(9, '11 Mei 2026', 'done');
+            push(10, '18 Mei 2026', 'done');
+            push(11, '25 Mei 2026', 'done');
+            push(12, '30 Mei 2026', 'done');
+            push(13, '16 Juni 2026', 'done');
+            push(14, '25 Juni 2026', 'done');
+            push(15, '29 Juni 2026', 'done');
+            push(16, '30 Juni 2026', 'done');
+            push(17, '7 Juli 2026', 'done');
+            push(18, '- Juli 2026', 'pending');
+            push(19, '- Juli 2026', 'pending');
+            push(20, '- Juli 2026', 'pending');
+
+            return data;
+        }
+
+        function getTempatAwal() {
+            const data = [];
+            const push = (nomor, tgl, desc, profit) => {
+                data.push({ id: Date.now() + Math.random() * 1000 + data.length, nomor, tgl, desc, profit });
+            };
+
+            push(1, '25 Maret 2026', 'H. Ade harga 3.500 : 1 kuintal 400k ke om ganda P 50k', 50000);
+            push(2, '25 Maret 2026', 'H. Ade harga 3.500 : 1 kuintal 400k ke om ganda P 50k', 50000);
+            push(3, '25 Maret 2026', 'H. Ade harga 3.500 : 50kg 200k ke om ratu P 25k', 25000);
+            push(4, '25 Maret 2026', 'H. Ade harga 3.500 : 50kg 200k ke om ratu, 50kg 200k ke om ganda P 50k', 50000);
+            push(5, '25 Maret 2026', 'H. Ade harga 3.500 : 75kg 300k ke om ratu, 100kg 400k ke om ganda, 25kg 100k ke wa iday P 100k',
+                100000);
+            push(6, '25 Maret 2026', 'H. Ade harga 3.450 : 1 kuintal 400k ke om ganda P 55k', 55000);
+            push(7, '25 Maret 2026', 'H. Ade harga 3.450 : 1 kuintal 400k ke om ganda P 55k', 55000);
+            push(8, '25 Maret 2026', 'H. Ade harga 3.450 : 50kg 200k ke om ratu, 20kg 80k ke om ganda P 39k', 39000);
+            push(9, '25 Maret 2026', 'Majalaya 2.250 : 104kg 416k ke om ganda P 180k', 180000);
+            push(10, '25 Maret 2026', 'Majalaya 2.250 : 130kg 521,5k ke om ganda P 180k', 180000);
+            push(11, '25 Maret 2026', 'H. Ade harga 3.450 : 50kg 200k ke om ratu P 20k', 20000);
+            push(12, '25 Maret 2026', 'H. Ade harga 3.450 : 100kg 200k ke om ganda P 55k', 55000);
+            push(13, '25 Maret 2026', 'H. Ade harga 3.450 : 25kg 110k ke a simnu P 23,5k', 23500);
+            push(14, '25 Maret 2026', 'H. Ade harga 3.450 : 40kg 160k ke om ganda P 25k', 25000);
+            push(15, '25 Maret 2026', 'H. Ade harga 3.450 : 100kg 400k ke om ganda P 55k', 55000);
+            push(16, '25 Maret 2026', 'H. Ade harga 3.400 : 100kg 400k ke om ganda P 60k', 60000);
+            push(17, '25 Maret 2026', 'H. Ade harga 3.450 : 50kg 200k ke om ratu P 30k', 30000);
+            push(18, '25 Maret 2026', 'H. Ade harga 3.400 : 100kg 400k ke om ganda P 60k', 60000);
+            push(19, '25 Maret 2026', 'H. Ade harga 3.450 : 50kg 200k ke om ratu P 30k', 30000);
+            push(20, '25 Maret 2026', 'H. Ade harga 3.450 : 50kg 200k ke om ganda P 30k', 30000);
+
+            return data;
+        }
+
+        // ================================================================
+        //  RENDER
+        // ================================================================
+        function formatRupiah(n) {
+            return 'Rp ' + n.toLocaleString('id-ID');
+        }
+
+        function renderUniversalFilter({
+    wrapId,
+    items,
+    activeValue,
+    dataKey,
+    getLabel,
+    onClick
+}) {
+
+    const wrap = document.getElementById(wrapId);
+
+    let html = "";
+
+    items.forEach(item => {
+
+        html += `
+            <button
+                class="filter-btn px-4 py-1.5 rounded-full border-2 border-[#d6cbbc] text-sm font-medium ${
+                    activeValue === item
+                        ? "active bg-[#2d2a24] text-white border-[#2d2a24]"
+                        : "bg-white text-[#4d4337]"
+                }"
+                data-${dataKey}="${item}">
+                ${getLabel(item)}
+            </button>
+        `;
+
+    });
+
+    wrap.innerHTML = html;
+
+    wrap.querySelectorAll(".filter-btn").forEach(btn => {
+
+        btn.onclick = function () {
+
+            onClick(this.dataset[dataKey]);
+
+        };
+
+    });
+
+}
+
+        // ===== PENGAMBILAN =====
+        function renderPengambilanFilter() {
+
+    renderUniversalFilter({
+
+        wrapId: "filterPengambilanWrap",
+
+        items: ["semua","done","pending"],
+
+        activeValue: filterPengambilan,
+
+        dataKey: "status",
+
+        getLabel(item){
+
+            if(item==="semua") return "📋 Semua";
+            if(item==="done") return "✅ Selesai";
+            return "⏳ Menunggu";
+
+        },
+
+        onClick(value){
+
+    filterPengambilan = value;
+    showAllPengambilan = false;
+
+    renderPengambilanFilter();
+    renderPengambilan();
+
+}
+
+    });
+
+}
+
+        function renderPengambilan() {
+            const list = document.getElementById('pengambilanList');
+            const judul = document.getElementById('judulPengambilan');
+            const jumlah = document.getElementById('jumlahPengambilan');
+
+            let filtered = pengambilan;
+            if (filterPengambilan !== 'semua') {
+                filtered = filtered.filter(p => p.status === filterPengambilan);
+            }
+
+            // Sort by nomor descending (terbesar dulu)
+            filtered.sort((a, b) => b.nomor - a.nomor);
+
+            // Tampilkan 5 terakhir atau semua
+            const displayed = showAllPengambilan ? filtered : filtered.slice(0, 5);
+
+            const statusLabel = filterPengambilan === 'semua' ? 'Semua' : 
+                               filterPengambilan === 'done' ? 'Selesai' : 'Menunggu';
+            judul.textContent = `📋 Pengambilan ${statusLabel}`;
+            jumlah.textContent = `${filtered.length} item`;
+
+            if (displayed.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-12 text-[#8a7d6b]">
+                        <span class="text-4xl block mb-2">📦</span>
+                        <p>Belum ada data pengambilan</p>
+                        <p class="text-sm">Klik "Tambah Pengambilan" untuk mulai</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            displayed.forEach(p => {
+                const statusClass = p.status;
+                const statusLabel2 = p.status === 'done' ? '✅ Selesai' : '⏳ Menunggu';
+
+                html += `
+                    <div class="bg-white rounded-2xl px-4 py-3 flex justify-between items-center shadow-sm border border-[#e8dfd3] item-card cursor-pointer" data-id="${p.id}">
+                        <div class="flex-1 min-w-0">
+                            <span class="text-xs text-[#8a7d6b] font-medium">#${p.nomor}</span>
+                            <p class="text-sm font-medium text-[#2d2a24]">${p.tgl}</p>
+                        </div>
+                        <div class="flex items-center gap-3 flex-shrink-0 ml-3">
+                            <span class="status-badge ${statusClass}">${statusLabel2}</span>
+                            <button class="btn-del-pengambilan text-[#b1a18c] hover:text-red-500 text-lg px-1" data-id="${p.id}">✕</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            list.innerHTML = html;
+
+            list.querySelectorAll('.item-card').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    if (e.target.closest('.btn-del-pengambilan')) return;
+                    const id = parseFloat(this.dataset.id);
+                    editPengambilan(id);
+                });
+            });
+
+            list.querySelectorAll('.btn-del-pengambilan').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const id = parseFloat(this.dataset.id);
+                    if (confirm('Hapus data pengambilan ini?')) {
+                        hapusPengambilan(id);
+                    }
+                });
+            });
+
+            // Tombol Lihat Semua
+            const btnLihat = document.getElementById('btnLihatSemuaPengambilan');
+            if (filtered.length > 5) {
+                btnLihat.classList.remove('hidden');
+                btnLihat.textContent = showAllPengambilan ? '📊 Tampilkan 5 Terakhir' :
+                    `📊 Lihat Semua (${filtered.length} item)`;
+            } else {
+                btnLihat.classList.add('hidden');
+            }
+
+            document.getElementById('totalPengambilanCount').textContent = pengambilan.length;
+            const done = pengambilan.filter(p => p.status === 'done').length;
+            document.getElementById('statusPengambilan').textContent = `${done}/${pengambilan.length}`;
+        }
+
+        // ===== TEMPAT =====
+        function renderTempatFilter(){
+
+    const bulanSet=new Set();
+
+    tempat.forEach(t=>{
+
+        const p=t.tgl.split(" ");
+
+        if(p.length>=3){
+
+            bulanSet.add(p[1]+" "+p[2]);
+
+        }
+
+    });
+
+    const bulanList=["semua",...Array.from(bulanSet).sort()];
+
+    renderUniversalFilter({
+
+        wrapId:"filterTempatWrap",
+
+        items:bulanList,
+
+        activeValue:filterTempat,
+
+        dataKey:"filter",
+
+        getLabel(item){
+
+            return item==="semua"
+                ? "📅 Semua"
+                : item;
+
+        },
+
+        onClick(value){
+
+    filterTempat = value;
+    showAllTempat = false;
+
+    renderTempatFilter();
+    renderTempat();
+
+}
+
+    });
+
+}
+
+        function renderTempat() {
+            const list = document.getElementById('tempatList');
+            const judul = document.getElementById('judulTempat');
+            const jumlah = document.getElementById('jumlahTempat');
+
+            let filtered = tempat;
+            if (filterTempat !== 'semua') {
+                filtered = filtered.filter(t => t.tgl.includes(filterTempat));
+            }
+
+            // Sort by nomor descending (terbesar dulu)
+            filtered.sort((a, b) => b.nomor - a.nomor);
+
+            // Tampilkan 5 terakhir atau semua
+            const displayed = showAllTempat ? filtered : filtered.slice(0, 5);
+
+            const bulanLabel = filterTempat === 'semua' ? 'Semua' : filterTempat;
+            judul.textContent = `🏪 Transaksi Tempat ${bulanLabel}`;
+            jumlah.textContent = `${filtered.length} item`;
+
+            if (displayed.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-12 text-[#8a7d6b]">
+                        <span class="text-4xl block mb-2">🏪</span>
+                        <p>Belum ada transaksi tempat</p>
+                        <p class="text-sm">Klik "Tambah Transaksi Tempat" untuk mulai</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            displayed.forEach(t => {
+                html += `
+                    <div class="bg-white rounded-2xl px-4 py-3 shadow-sm border border-[#e8dfd3] item-card cursor-pointer" data-id="${t.id}">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1 min-w-0">
+                                <span class="text-xs text-[#8a7d6b] font-medium">#${t.nomor} • ${t.tgl}</span>
+                                <p class="text-sm font-medium text-[#2d2a24] mt-1">${t.desc}</p>
+                            </div>
+                            <div class="flex items-center gap-3 flex-shrink-0 ml-3">
+                                <span class="font-bold text-sm text-green-700">${formatRupiah(t.profit)}</span>
+                                <button class="btn-del-tempat text-[#b1a18c] hover:text-red-500 text-lg px-1" data-id="${t.id}">✕</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            list.innerHTML = html;
+
+            list.querySelectorAll('.item-card').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    if (e.target.closest('.btn-del-tempat')) return;
+                    const id = parseFloat(this.dataset.id);
+                    editTempat(id);
+                });
+            });
+
+            list.querySelectorAll('.btn-del-tempat').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const id = parseFloat(this.dataset.id);
+                    if (confirm('Hapus transaksi ini?')) {
+                        hapusTempat(id);
+                    }
+                });
+            });
+
+            // Tombol Lihat Semua
+            const btnLihat = document.getElementById('btnLihatSemuaTempat');
+            if (filtered.length > 5) {
+                btnLihat.classList.remove('hidden');
+                btnLihat.textContent = showAllTempat ? '📊 Tampilkan 5 Terakhir' :
+                    `📊 Lihat Semua (${filtered.length} item)`;
+            } else {
+                btnLihat.classList.add('hidden');
+            }
+
+            document.getElementById('totalTransaksiTempat').textContent = tempat.length;
+            const totalProfit = tempat.reduce((sum, t) => sum + t.profit, 0);
+            document.getElementById('totalProfit').textContent = formatRupiah(totalProfit);
+        }
+
+        // ===== REKAP =====
+        function renderRekap() {
+            const totalProfit = tempat.reduce((sum, t) => sum + t.profit, 0);
+            const totalPengambilan = pengambilan.length;
+            const donePengambilan = pengambilan.filter(p => p.status === 'done').length;
+
+            document.getElementById('totalProfit').textContent = formatRupiah(totalProfit);
+            document.getElementById('totalTransaksiTempat').textContent = tempat.length;
+            document.getElementById('totalPengambilanCount').textContent = totalPengambilan;
+            document.getElementById('statusPengambilan').textContent = `${donePengambilan}/${totalPengambilan}`;
+
+            const detail = document.getElementById('rekapDetail');
+            detail.innerHTML = `
+                <div class="flex justify-between py-1 border-b border-[#f0e9df]">
+                    <span class="text-[#8a7d6b]">Total Profit</span>
+                    <span class="font-semibold text-green-700">${formatRupiah(totalProfit)}</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-[#f0e9df]">
+                    <span class="text-[#8a7d6b]">Total Pengambilan</span>
+                    <span class="font-semibold">${totalPengambilan}</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-[#f0e9df]">
+                    <span class="text-[#8a7d6b]">Selesai</span>
+                    <span class="font-semibold text-green-700">${donePengambilan}</span>
+                </div>
+                <div class="flex justify-between py-1">
+                    <span class="text-[#8a7d6b]">Menunggu</span>
+                    <span class="font-semibold text-yellow-700">${totalPengambilan - donePengambilan}</span>
+                </div>
+                <div class="flex justify-between py-2 mt-2 border-t-2 border-[#d6cbbc]">
+                    <span class="font-semibold">Total Transaksi Tempat</span>
+                    <span class="font-semibold">${tempat.length}</span>
+                </div>
+            `;
+        }
+
+        // ================================================================
+        //  CRUD PENGAMBILAN
+        // ================================================================
+        function tambahPengambilan(nomor, tgl, status) {
+            const newP = { id: Date.now() + Math.random() * 1000, nomor: parseInt(nomor), tgl: tgl.trim(), status };
+            pengambilan.push(newP);
+            saveData();
+            renderPengambilan();
+        }
+
+        function editPengambilan(id) {
+            const p = pengambilan.find(item => item.id === id);
+            if (!p) return;
+            editingPengambilanId = id;
+            document.getElementById('modalPengambilanTitle').textContent = 'Edit Pengambilan';
+            document.getElementById('inputPengambilanNomor').value = p.nomor;
+            document.getElementById('inputPengambilanTgl').value = p.tgl;
+            document.getElementById('inputPengambilanStatus').value = p.status;
+            document.getElementById('btnHapusPengambilan').classList.remove('hidden');
+            document.getElementById('modalPengambilanOverlay').classList.remove('hidden');
+        }
+
+        function simpanPengambilan() {
+            const nomor = document.getElementById('inputPengambilanNomor').value;
+            const tgl = document.getElementById('inputPengambilanTgl').value.trim();
+            const status = document.getElementById('inputPengambilanStatus').value;
+
+            if (!nomor || !tgl) {
+                alert('Harap isi Nomor dan Tanggal!');
+                return;
+            }
+
+            if (editingPengambilanId) {
+                const idx = pengambilan.findIndex(p => p.id === editingPengambilanId);
+                if (idx !== -1) {
+                    pengambilan[idx] = { ...pengambilan[idx], nomor: parseInt(nomor), tgl, status };
+                    saveData();
+                    renderPengambilan();
+                }
+                editingPengambilanId = null;
+            } else {
+                tambahPengambilan(nomor, tgl, status);
+            }
+            closeModalPengambilan();
+        }
+
+        function hapusPengambilan(id) {
+            pengambilan = pengambilan.filter(p => p.id !== id);
+            saveData();
+            renderPengambilan();
+            if (editingPengambilanId === id) closeModalPengambilan();
+        }
+
+        function closeModalPengambilan() {
+            document.getElementById('modalPengambilanOverlay').classList.add('hidden');
+            document.getElementById('btnHapusPengambilan').classList.add('hidden');
+            editingPengambilanId = null;
+            document.getElementById('modalPengambilanTitle').textContent = 'Tambah Pengambilan';
+            document.getElementById('inputPengambilanNomor').value = '';
+            document.getElementById('inputPengambilanTgl').value = '';
+            document.getElementById('inputPengambilanStatus').value = 'done';
+        }
+
+        // ================================================================
+        //  CRUD TEMPAT
+        // ================================================================
+        function tambahTempat(nomor, tgl, desc, profit) {
+            const newT = { id: Date.now() + Math.random() * 1000, nomor: parseInt(nomor), tgl: tgl.trim(), desc: desc.trim(),
+                profit: parseInt(profit) };
+            tempat.push(newT);
+            saveData();
+            renderTempat();
+        }
+
+        function editTempat(id) {
+            const t = tempat.find(item => item.id === id);
+            if (!t) return;
+            editingTempatId = id;
+            document.getElementById('modalTempatTitle').textContent = 'Edit Transaksi Tempat';
+            document.getElementById('inputTempatNomor').value = t.nomor;
+            document.getElementById('inputTempatTgl').value = t.tgl;
+            document.getElementById('inputTempatDesc').value = t.desc;
+            document.getElementById('inputTempatProfit').value = t.profit;
+            document.getElementById('btnHapusTempat').classList.remove('hidden');
+            document.getElementById('modalTempatOverlay').classList.remove('hidden');
+        }
+
+        function simpanTempat() {
+            const nomor = document.getElementById('inputTempatNomor').value;
+            const tgl = document.getElementById('inputTempatTgl').value.trim();
+            const desc = document.getElementById('inputTempatDesc').value.trim();
+            const profit = parseInt(document.getElementById('inputTempatProfit').value);
+
+            if (!nomor || !tgl || !desc || !profit || profit <= 0) {
+                alert('Harap isi semua data dengan benar!');
+                return;
+            }
+
+            if (editingTempatId) {
+                const idx = tempat.findIndex(t => t.id === editingTempatId);
+                if (idx !== -1) {
+                    tempat[idx] = { ...tempat[idx], nomor: parseInt(nomor), tgl, desc, profit };
+                    saveData();
+                    renderTempat();
+                }
+                editingTempatId = null;
+            } else {
+                tambahTempat(nomor, tgl, desc, profit);
+            }
+            closeModalTempat();
+        }
+
+        function hapusTempat(id) {
+            tempat = tempat.filter(t => t.id !== id);
+            saveData();
+            renderTempat();
+            if (editingTempatId === id) closeModalTempat();
+        }
+
+        function closeModalTempat() {
+            document.getElementById('modalTempatOverlay').classList.add('hidden');
+            document.getElementById('btnHapusTempat').classList.add('hidden');
+            editingTempatId = null;
+            document.getElementById('modalTempatTitle').textContent = 'Tambah Transaksi Tempat';
+            document.getElementById('inputTempatNomor').value = '';
+            document.getElementById('inputTempatTgl').value = '';
+            document.getElementById('inputTempatDesc').value = '';
+            document.getElementById('inputTempatProfit').value = '';
+        }
+
+        // ================================================================
+        //  RESET DATA
+        // ================================================================
+        function resetData() {
+            if (confirm('Yakin ingin menghapus SEMUA data Bisnis Dedak?')) {
+                if (confirm('Data akan hilang permanen! Lanjutkan?')) {
+                    localStorage.removeItem(DEDAK_KEY);
+                    pengambilan = getPengambilanAwal();
+                    tempat = getTempatAwal();
+                    saveData();
+                    renderAll();
+                }
+            }
+        }
+
+        // ================================================================
+        //  RENDER ALL & TAB
+        // ================================================================
+        function renderAll() {
+            renderPengambilanFilter();
+            renderPengambilan();
+            renderTempatFilter();
+            renderTempat();
+            renderRekap();
+        }
+
+        function switchTab(tab) {
+            const tabs = ['pengambilan', 'tempat', 'rekap'];
+            tabs.forEach(t => {
+                const el = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+                el.classList.toggle('hidden', t !== tab);
+            });
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tab);
+            });
+
+            if (tab === 'rekap') renderRekap();
+        }
+
+        function renderAll() {
+    renderPengambilanFilter();
+    renderPengambilan();
+    renderTempatFilter();
+    renderTempat();
+    renderRekap();
+    updateTotalItems(); // <-- TAMBAHKAN
+}
+
+function updateTotalItems() {
+    const total = pengambilan.length + tempat.length;
+    document.getElementById('totalItems').textContent = total + ' item';
+}
+
+function loadData() {
+    const stored = localStorage.getItem(DEDAK_KEY);
+    if (stored) {
+        try {
+            const data = JSON.parse(stored);
+            pengambilan = data.pengambilan || [];
+            tempat = data.tempat || [];
+        } catch {
+            pengambilan = [];
+            tempat = [];
+        }
+    } else {
+        pengambilan = getPengambilanAwal();
+        tempat = getTempatAwal();
+        saveData();
+    }
+    updateTotalItems(); // <-- TAMBAHKAN
+}
+
+        // ================================================================
+        //  EVENT LISTENERS
+        // ================================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            renderAll();
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    switchTab(this.dataset.tab);
+                });
+            });
+
+            // ===== PENGAMBILAN =====
+            document.getElementById('btnTambahPengambilan').addEventListener('click', function() {
+                editingPengambilanId = null;
+                document.getElementById('modalPengambilanTitle').textContent = 'Tambah Pengambilan';
+                document.getElementById('btnHapusPengambilan').classList.add('hidden');
+                document.getElementById('inputPengambilanNomor').value = '';
+                document.getElementById('inputPengambilanTgl').value = '';
+                document.getElementById('inputPengambilanStatus').value = 'done';
+                document.getElementById('modalPengambilanOverlay').classList.remove('hidden');
+            });
+
+            document.getElementById('btnSimpanPengambilan').addEventListener('click', simpanPengambilan);
+            document.getElementById('btnBatalPengambilan').addEventListener('click', closeModalPengambilan);
+
+            document.getElementById('btnHapusPengambilan').addEventListener('click', function() {
+                if (editingPengambilanId && confirm('Yakin hapus data ini?')) {
+                    hapusPengambilan(editingPengambilanId);
+                }
+            });
+
+            document.getElementById('modalPengambilanOverlay').addEventListener('click', function(e) {
+                if (e.target === this) closeModalPengambilan();
+            });
+
+            document.getElementById('btnLihatSemuaPengambilan').addEventListener('click', function() {
+                showAllPengambilan = !showAllPengambilan;
+                renderPengambilan();
+            });
+
+            // ===== TEMPAT =====
+            document.getElementById('btnTambahTempat').addEventListener('click', function() {
+                editingTempatId = null;
+                document.getElementById('modalTempatTitle').textContent = 'Tambah Transaksi Tempat';
+                document.getElementById('btnHapusTempat').classList.add('hidden');
+                document.getElementById('inputTempatNomor').value = '';
+                document.getElementById('inputTempatTgl').value = '';
+                document.getElementById('inputTempatDesc').value = '';
+                document.getElementById('inputTempatProfit').value = '';
+                document.getElementById('modalTempatOverlay').classList.remove('hidden');
+            });
+
+            document.getElementById('btnSimpanTempat').addEventListener('click', simpanTempat);
+            document.getElementById('btnBatalTempat').addEventListener('click', closeModalTempat);
+
+            document.getElementById('btnHapusTempat').addEventListener('click', function() {
+                if (editingTempatId && confirm('Yakin hapus data ini?')) {
+                    hapusTempat(editingTempatId);
+                }
+            });
+
+            document.getElementById('modalTempatOverlay').addEventListener('click', function(e) {
+                if (e.target === this) closeModalTempat();
+            });
+
+            document.getElementById('btnLihatSemuaTempat').addEventListener('click', function() {
+                showAllTempat = !showAllTempat;
+                renderTempat();
+            });
+
+            // ===== RESET =====
+            document.getElementById('btnResetData').addEventListener('click', resetData);
+
+            // Enter key
+            document.getElementById('inputPengambilanNomor').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') simpanPengambilan();
+            });
+            document.getElementById('inputTempatProfit').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') simpanTempat();
+            });
+        });
+    </script>
+
+</body>
+</html>

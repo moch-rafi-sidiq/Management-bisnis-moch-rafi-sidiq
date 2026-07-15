@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>Dashboard Bisnis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+        }
+        .card {
+            transition: all 0.25s ease;
+        }
+        .card:active {
+            transform: scale(0.97);
+        }
+        .bg-gradient-ulat {
+            background: linear-gradient(135deg, #2d2a24 0%, #4a3f35 100%);
+        }
+        .bg-gradient-dedak {
+            background: linear-gradient(135deg, #1a7a4a 0%, #2d9d6a 100%);
+        }
+        .stats-number {
+            font-size: 2.2rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+    </style>
+</head>
+<body class="bg-[#f2ede6] font-sans antialiased min-h-screen">
+
+    <!-- ===== HEADER ===== -->
+    <header class="bg-white border-b border-[#e8dfd3] sticky top-0 z-10 shadow-sm">
+        <div class="max-w-md mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-[#2d2a24]">
+                <span class="text-2xl">📊</span> Dashboard Bisnis
+            </h1>
+        </div>
+    </header>
+
+    <div class="max-w-md mx-auto px-4 pt-6 pb-24">
+
+        <!-- ===== GREETING ===== -->
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-[#2d2a24]">Welcome Enterpreneur! 👋</h2>
+            <p class="text-[#8a7d6b] text-sm mt-1">Pilih bisnis yang ingin dikelola</p>
+        </div>
+
+        <!-- ===== STATISTIK CEPAT ===== -->
+        <div class="grid grid-cols-2 gap-3 mb-6" id="quickStats">
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-[#e8dfd3] text-center">
+                <p class="text-xs text-[#8a7d6b] uppercase tracking-wider">Total Bisnis</p>
+                <p class="stats-number text-[#2d2a24]">2</p>
+            </div>
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-[#e8dfd3] text-center">
+                <p class="text-xs text-[#8a7d6b] uppercase tracking-wider">Total Transaksi</p>
+                <p class="stats-number text-[#2d2a24]" id="totalTransaksi">0</p>
+            </div>
+        </div>
+
+        <!-- ===== KARTU BISNIS ULAT ===== -->
+        <a href="ulat.html" class="block card mb-4">
+            <div class="bg-gradient-ulat text-white rounded-2xl p-6 shadow-lg">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="text-4xl"></span>
+                        <h3 class="text-xl font-bold mt-2">Bisnis Ulat Hongkong</h3>
+                        <p class="text-sm opacity-80 mt-1">Kelola keuangan &amp; pertumbuhan ulat</p>
+                    </div>
+                    <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-medium">
+                        Aktif
+                    </span>
+                </div>
+                <div class="flex gap-4 mt-4 pt-4 border-t border-white/20">
+                    <div>
+                        <p class="text-xs opacity-70">Transaksi</p>
+                        <p class="font-bold text-lg" id="ulatTransaksi">0</p>
+                    </div>
+                    <div>
+                        <p class="text-xs opacity-70">Saldo</p>
+                        <p class="font-bold text-lg" id="ulatSaldo">Rp 0</p>
+                    </div>
+                    <div>
+                        <p class="text-xs opacity-70">Pertumbuhan</p>
+                        <p class="font-bold text-lg" id="ulatGrowth">0</p>
+                    </div>
+                </div>
+                <div class="mt-3 text-sm font-medium text-white/80 flex items-center gap-1">
+                    Klik untuk buka →
+                </div>
+            </div>
+        </a>
+
+        <!-- ===== KARTU BISNIS DEDAK ===== -->
+        <a href="dedak.html" class="block card">
+            <div class="bg-gradient-dedak text-white rounded-2xl p-6 shadow-lg">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="text-4xl"></span>
+                        <h3 class="text-xl font-bold mt-2">Bisnis Dedak</h3>
+                        <p class="text-sm opacity-80 mt-1">Kelola pengambilan &amp; penjualan dedak</p>
+                    </div>
+                    <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-medium">
+                        Aktif
+                    </span>
+                </div>
+                <div class="flex gap-4 mt-4 pt-4 border-t border-white/20">
+                    <div>
+                        <p class="text-xs opacity-70">Pengambilan</p>
+                        <p class="font-bold text-lg" id="dedakPengambilan">0</p>
+                    </div>
+                    <div>
+                        <p class="text-xs opacity-70">Transaksi</p>
+                        <p class="font-bold text-lg" id="dedakTransaksi">0</p>
+                    </div>
+                    <div>
+                        <p class="text-xs opacity-70">Profit</p>
+                        <p class="font-bold text-lg" id="dedakProfit">Rp 0</p>
+                    </div>
+                </div>
+                <div class="mt-3 text-sm font-medium text-white/80 flex items-center gap-1">
+                    Klik untuk buka →
+                </div>
+            </div>
+        </a>
+
+        <!-- ===== FOOTER ===== -->
+        <div class="mt-8 text-center text-xs text-[#b1a18c] border-t border-[#e8dfd3] pt-4">
+            Data tersimpan di localStorage • Dibuat oleh Moch Rafi sidiq
+        </div>
+    </div>
+
+    <script>
+        // ================================================================
+        //  LOAD DATA DARI LOCALSTORAGE
+        // ================================================================
+        function loadStats() {
+            // === ULAT ===
+            let ulatTransaksi = 0;
+            let ulatSaldo = 0;
+            let ulatGrowth = 0;
+
+            try {
+                const ulatData = JSON.parse(localStorage.getItem('ulat_hongkong_transaksi') || '[]');
+                ulatTransaksi = ulatData.length;
+                ulatData.forEach(t => {
+                    if (t.jenis === 'pemasukan') ulatSaldo += t.jumlah;
+                    else ulatSaldo -= t.jumlah;
+                });
+
+                const growthData = JSON.parse(localStorage.getItem('ulat_hongkong_growth') || '[]');
+                ulatGrowth = growthData.length;
+            } catch (e) {}
+
+            document.getElementById('ulatTransaksi').textContent = ulatTransaksi;
+            document.getElementById('ulatSaldo').textContent = 'Rp ' + ulatSaldo.toLocaleString('id-ID');
+            document.getElementById('ulatGrowth').textContent = ulatGrowth;
+
+            // === DEDAK ===
+            let dedakPengambilan = 0;
+            let dedakTransaksi = 0;
+            let dedakProfit = 0;
+
+            try {
+                const dedakData = JSON.parse(localStorage.getItem('bisnis_dedak') || '{"pengambilan":[],"tempat":[]}');
+                dedakPengambilan = dedakData.pengambilan?.length || 0;
+                dedakTransaksi = dedakData.tempat?.length || 0;
+                dedakData.tempat?.forEach(t => {
+                    dedakProfit += t.profit || 0;
+                });
+            } catch (e) {}
+
+            document.getElementById('dedakPengambilan').textContent = dedakPengambilan;
+            document.getElementById('dedakTransaksi').textContent = dedakTransaksi;
+            document.getElementById('dedakProfit').textContent = 'Rp ' + dedakProfit.toLocaleString('id-ID');
+
+            // === TOTAL ===
+            const total = ulatTransaksi + dedakTransaksi;
+            document.getElementById('totalTransaksi').textContent = total;
+        }
+
+        // ================================================================
+        //  RUN
+        // ================================================================
+        document.addEventListener('DOMContentLoaded', loadStats);
+
+        // Refresh data setiap kali tab di-focus
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                loadStats();
+            }
+        });
+    </script>
+
+</body>
+</html>

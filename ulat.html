@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>Catatan Bisnis Ulat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .slide-up {
+            animation: slideUp 0.25s ease-out;
+        }
+        @keyframes slideUp {
+            from {
+                transform: translateY(40px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        .modal-backdrop {
+            backdrop-filter: blur(4px);
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .trans-item:active {
+            transform: scale(0.98);
+        }
+        .filter-btn.active {
+            background: #2d2a24;
+            color: #f5ede2;
+            border-color: #2d2a24;
+        }
+        .filter-btn {
+            transition: all 0.15s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .filter-btn:active {
+            transform: scale(0.95);
+        }
+        .rekap-item {
+            border-bottom: 1px solid #e8dfd3;
+        }
+        .rekap-item:last-child {
+            border-bottom: none;
+        }
+        .tab-btn.active {
+            background: #b8860b;
+            color: white;
+        }
+        .tab-btn {
+            transition: all 0.15s;
+        }
+        .tab-btn:active {
+            transform: scale(0.95);
+        }
+        .growth-status {
+            padding: 2px 10px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .growth-status.done {
+            background: #d4edda;
+            color: #1f7a47;
+        }
+        .growth-status.fail {
+            background: #f8d7da;
+            color: #b13e3e;
+        }
+        .growth-status.pending {
+            background: #f1e5cf;
+            color: #8b6f3f;
+        }
+    </style>
+</head>
+<body class="bg-[#f2ede6] font-sans antialiased pb-24">
+
+    <div class="max-w-md mx-auto px-4 pt-4" id="app">
+
+        <!-- ===== HEADER ===== -->
+        <header class="flex justify-between items-center pb-4 mb-4 border-b-2 border-[#d6cbbc]">
+            <h1 class="text-xl font-bold text-[#3d352b]">
+                <span class="text-2xl"></span> Bisnis Ulat Hongkong
+            </h1>
+            <span class="bg-[#3d352b] text-[#f5ede2] px-3 py-1 rounded-full text-xs font-semibold" id="totalTransaksi">
+                0 transaksi
+            </span>
+        </header>
+
+        <!-- ===== TAB NAVIGASI ===== -->
+        <div class="flex gap-2 mb-4">
+            <button class="tab-btn flex-1 py-2.5 rounded-xl font-semibold text-sm bg-white border border-[#e8dfd3] text-[#4d4337] active" data-tab="keuangan">
+                💰 Keuangan
+            </button>
+            <button class="tab-btn flex-1 py-2.5 rounded-xl font-semibold text-sm bg-white border border-[#e8dfd3] text-[#4d4337]" data-tab="pertumbuhan">
+                🌱 Pertumbuhan
+            </button>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAB KEUANGAN -->
+        <!-- ============================================================ -->
+        <div id="tabKeuangan">
+
+            <!-- SALDO CARD -->
+            <div class="bg-[#2d2a24] text-[#f5ede2] rounded-2xl p-4 mb-4 flex justify-between items-center">
+                <div>
+                    <p class="text-xs uppercase opacity-70 tracking-wider">Saldo Total</p>
+                    <p class="text-3xl font-bold" id="saldoTotal">Rp 0</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs uppercase opacity-70 tracking-wider">Pemasukan</p>
+                    <p class="text-green-400 font-semibold text-lg" id="totalPemasukan">Rp 0</p>
+                    <p class="text-xs uppercase opacity-70 tracking-wider mt-1">Pengeluaran</p>
+                    <p class="text-red-400 font-semibold text-lg" id="totalPengeluaran">Rp 0</p>
+                </div>
+            </div>
+
+            <!-- TOMBOL TAMBAH -->
+            <button id="btnTambah" class="w-full bg-[#b8860b] hover:bg-[#9e740a] active:scale-95 transition text-white font-semibold py-3.5 rounded-2xl flex items-center justify-center gap-2 mb-4">
+                <span class="text-xl">➕</span> Tambah Transaksi
+            </button>
+
+            <!-- FILTER BULAN -->
+            <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-3 mb-3" id="filterWrap">
+                <!-- diisi JS -->
+            </div>
+
+            <!-- REKAP BULANAN -->
+            <div class="bg-white rounded-2xl p-3 mb-4 shadow-sm border border-[#e8dfd3]" id="rekapBulanan">
+                <div class="flex justify-between text-xs text-[#8a7d6b] font-medium px-1 pb-1">
+                    <span>Bulan</span>
+                    <span>Masuk</span>
+                    <span>Keluar</span>
+                    <span>Saldo</span>
+                </div>
+                <div id="rekapList">
+                    <!-- diisi JS -->
+                </div>
+            </div>
+
+            <!-- LIST TRANSAKSI -->
+            <div class="flex justify-between items-center mb-3">
+                <span class="font-semibold text-[#4d4337] text-sm" id="judulList">📋 Transaksi</span>
+                <span class="text-xs text-[#8a7d6b]" id="jumlahFilter">0 transaksi</span>
+            </div>
+
+            <div id="transaksiList" class="space-y-2">
+                <!-- diisi JS -->
+            </div>
+
+            <!-- TOMBOL LIHAT SEMUA -->
+            <button id="btnLihatSemua" class="w-full mt-4 py-3 text-[#8a7d6b] text-sm font-medium border-2 border-dashed border-[#d6cbbc] rounded-2xl hover:bg-[#e8dfd3] active:scale-95 transition hidden">
+                📊 Lihat Semua Transaksi
+            </button>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAB PERTUMBUHAN -->
+        <!-- ============================================================ -->
+        <div id="tabPertumbuhan" class="hidden">
+
+            <!-- TOMBOL TAMBAH PERTUMBUHAN -->
+            <button id="btnTambahGrowth" class="w-full bg-[#2d7a4b] hover:bg-[#1f6a3b] active:scale-95 transition text-white font-semibold py-3.5 rounded-2xl flex items-center justify-center gap-2 mb-4">
+                <span class="text-xl">➕</span> Tambah Data Pertumbuhan
+            </button>
+
+            <!-- FILTER KATEGORI PERTUMBUHAN -->
+<div id="growthFilterWrap"
+    class="flex gap-2 overflow-x-auto scrollbar-hide pb-3 mb-3">
+    <!-- diisi JS -->
+</div>
+
+            <!-- LIST PERTUMBUHAN -->
+            <div id="growthList" class="space-y-2">
+                <!-- diisi JS -->
+            </div>
+
+            <!-- STATISTIK PERTUMBUHAN -->
+            <div class="bg-white rounded-2xl p-4 mt-4 shadow-sm border border-[#e8dfd3]">
+                <p class="text-xs font-semibold text-[#8a7d6b] uppercase tracking-wider mb-2">📊 Statistik</p>
+                <div class="grid grid-cols-2 gap-2 text-sm" id="growthStats">
+                    <!-- diisi JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- MODAL TRANSAKSI -->
+        <!-- ============================================================ -->
+        <div id="modalOverlay" class="fixed inset-0 bg-black/40 modal-backdrop flex items-end md:items-center justify-center px-4 z-50 hidden">
+            <div class="bg-white rounded-3xl rounded-b-3xl p-6 w-full max-w-md slide-up">
+                <h2 class="text-xl font-semibold text-[#2d2a24] mb-4" id="modalTitle">Tambah Transaksi</h2>
+
+                <label class="text-xs font-semibold text-[#5d5242] block mt-3 mb-1">Jenis</label>
+                <select id="inputJenis" class="w-full px-4 py-3 bg-[#faf7f2] border border-[#ddd2c2] rounded-xl text-sm focus:outline-none focus:border-[#b8860b] focus:bg-white">
+                    <option value="pemasukan">Pemasukan</option>
+                    <option value="pengeluaran">Pengeluaran</option>
+                </select>
+
+                <label class="text-xs font-semibold text-[#5d5242] block mt-3 mb-1">Tanggal</label>
+                <input type="date" id="inputTanggal" class="w-full px-4 py-3 bg-[#faf7f2] border border-[#ddd2c2] rounded-xl text-sm focus:outline-none focus:border-[#b8860b] focus:bg-white" />
+
+                <label class="text-xs font-semibold text-[#5d5242] block mt-3 mb-1">Deskripsi</label>
+                <input type="text" id="inputDeskripsi" placeholder="e.g. Jual ulat 1kg" class="w-full px-4 py-3 bg-[#faf7f2] border border-[#ddd2c2] rounded-xl text-sm focus:outline-none focus:border-[#b8860b] focus:bg-white" />
+
+                <label class="text-xs font-semibold text-[#5d5242] block mt-3 mb-1">Jumlah (Rp)</label>
+                <input type="number" id="inputJumlah" placeholder="0" min="0" class="w-full px-4 py-3 bg-[#faf7f2] border border-[#ddd2c2] rounded-xl text-sm focus:outline-none focus:border-[#b8860b] focus:bg-white" />
+
+                <div class="flex gap-3 mt-5">
+                    <button id="btnBatal" class="flex-1 bg-[#e8dfd3] hover:bg-[#d6cbbc] active:scale-95 transition text-[#4d4337] font-semibold py-3.5 rounded-xl">Batal</button>
+                    <button id="btnSimpan" class="flex-1 bg-[#b8860b] hover:bg-[#9e740a] active:scale-95 transition text-white font-semibold py-3.5 rounded-xl">Simpan</button>
+                </div>
+
+                <button id="btnHapus" class="w-full bg-red-500 hover:bg-red-600 active:scale-95 transition text-white font-semibold py-3.5 rounded-xl mt-3 hidden">
+                    Hapus Transaksi
+                </button>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- MODAL PERTUMBUHAN -->
+        <!-- ============================================================ -->
+        <div id="modalGrowthOverlay" class="fixed inset-0 bg-black/40 modal-backdrop flex items-end md:items-center justify-center px-4 z-50 hidden">
+            <div class="bg-white rounded-3xl rounded-b-3xl p-6 w-full max-w-md slide-up">
+                <h2 class="text-xl font-semibold text-[#2d2a24] mb-4" id="modalGrowthTitle">Tambah Data Pertumbuhan</h2>
+
+                <label class="text-xs font-semibold text-[#5d5242] block mt-3 mb-1">Kategori</label>
+                <select id="inputGrowthKategori" class="w-full px-4 py-3 bg-[#faf7f2] border border-[#ddd2c2] rounded-xl text-sm focus:outline-none focus:border-[#b8860b] focus:bg-white">
+                    <option value="pindah">🔄 Pindah Media</option>
+                    <option value="kepompong">🟤 Kepompong</option>
+                    <option value="kepik">🐞 Kepik</option>
+                    <option value="panen">🌾 Panen</option>
+                </select>
+
+                <label class="text-xs font-semibold text-[#5d5242] block mt-3 mb-1">Generasi</label>
+                <input type="text" id="inputGrowthGen" placeholder="e.g. Gen 3" class="w-full px-4 py-3 bg-[#faf7f2] border border-[#ddd2c2] rounded-xl text-sm focus:outline-none focus:border-[#b8860b] focus:bg-white" />
+
+                <label class="text-xs font-semibold text-[#5d5242] block mt-3 mb-1">Tanggal</label>
+                <input type="text" id="inputGrowthTgl" placeholder="e.g. 15 Februari 2026 atau -- -- 2026" class="w-full px-4 py-3 bg-[#faf7f2] border border-[#ddd2c2] rounded-xl text-sm focus:outline-none focus:border-[#b8860b] focus:bg-white" />
+
+                <label class="text-xs font-semibold text-[#5d5242] block mt-3 mb-1">Status</label>
+                <select id="inputGrowthStatus" class="w-full px-4 py-3 bg-[#faf7f2] border border-[#ddd2c2] rounded-xl text-sm focus:outline-none focus:border-[#b8860b] focus:bg-white">
+                    <option value="pending">⏳ Menunggu</option>
+                    <option value="done">✅ Selesai</option>
+                    <option value="fail">❌ Gagal</option>
+                </select>
+
+                <div class="flex gap-3 mt-5">
+                    <button id="btnBatalGrowth" class="flex-1 bg-[#e8dfd3] hover:bg-[#d6cbbc] active:scale-95 transition text-[#4d4337] font-semibold py-3.5 rounded-xl">Batal</button>
+                    <button id="btnSimpanGrowth" class="flex-1 bg-[#2d7a4b] hover:bg-[#1f6a3b] active:scale-95 transition text-white font-semibold py-3.5 rounded-xl">Simpan</button>
+                </div>
+
+                <button id="btnHapusGrowth" class="w-full bg-red-500 hover:bg-red-600 active:scale-95 transition text-white font-semibold py-3.5 rounded-xl mt-3 hidden">
+                    Hapus Data
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ================================================================
+        //  DATA & STATE
+        // ================================================================
+        const STORAGE_KEY = 'ulat_hongkong_transaksi';
+        const GROWTH_KEY = 'ulat_hongkong_growth';
+
+        let transaksi = [];
+        let growthData = [];
+        let editingId = null;
+        let editingGrowthId = null;
+        let filterBulan = 'semua';
+        let filterKategori = 'semua';
+        let showAll = false;
+
+        // ================================================================
+        //  LOAD & SAVE
+        // ================================================================
+        function loadData() {
+            // Load transaksi
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                try {
+                    transaksi = JSON.parse(stored);
+                } catch {
+                    transaksi = [];
+                }
+            } else {
+                transaksi = getDataAwal();
+                saveData();
+            }
+            transaksi.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+
+            // Load growth
+            const storedGrowth = localStorage.getItem(GROWTH_KEY);
+            if (storedGrowth) {
+                try {
+                    growthData = JSON.parse(storedGrowth);
+                } catch {
+                    growthData = [];
+                }
+            } else {
+                growthData = getGrowthAwal();
+                saveGrowth();
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(transaksi));
+        }
+
+        function saveGrowth() {
+            localStorage.setItem(GROWTH_KEY, JSON.stringify(growthData));
+        }
+
+        // ================================================================
+        //  DATA AWAL TRANSAKSI
+        // ================================================================
+        function getDataAwal() {
+            const data = [];
+            const push = (tgl, desc, jenis, jumlah) => {
+                data.push({ id: Date.now() + Math.random() * 1000 + data.length, tanggal: tgl, deskripsi: desc, jenis,
+                    jumlah });
+            };
+
+            push('2026-02-28', 'Jual ulat 540 ons', 'pemasukan', 28500);
+            push('2026-02-28', 'Beli 511 4kg', 'pengeluaran', 48000);
+            push('2026-02-14', 'Beli Waluh 2x', 'pengeluaran', 10000);
+            push('2026-02-14', 'Beli Dage', 'pengeluaran', 50000);
+            push('2026-02-14', 'Beli Wortel', 'pengeluaran', 5000);
+            push('2026-02-17', 'Beli 511 1,5kg', 'pengeluaran', 18000);
+            push('2026-02-17', 'Beli 512 1kg', 'pengeluaran', 13000);
+            push('2026-02-17', 'Beli pollard 2kg', 'pengeluaran', 21000);
+            push('2026-02-25', 'Beli 511 1kg', 'pengeluaran', 13000);
+            push('2026-02-28', 'Beli Waluh', 'pengeluaran', 5000);
+            push('2026-02-28', 'Beli 511 1kg', 'pengeluaran', 13000);
+            push('2026-03-07', 'Beli baki 6k/pcs', 'pengeluaran', 48000);
+            push('2026-03-08', 'Beli 511 0,5kg', 'pengeluaran', 6500);
+            push('2026-03-10', 'Beli 511 1,5kg', 'pengeluaran', 20000);
+            push('2026-03-10', 'Beli huut 10kg', 'pengeluaran', 40000);
+            push('2026-03-14', 'Beli 511 0,5kg', 'pengeluaran', 6500);
+            push('2026-03-14', 'Beli waluh', 'pengeluaran', 5000);
+            push('2026-03-19', 'Beli 511 0,5kg', 'pengeluaran', 6500);
+            push('2026-03-25', 'Beli 511 1kg', 'pengeluaran', 13000);
+            push('2026-03-31', 'Beli 511 0,5kg', 'pengeluaran', 6500);
+            push('2026-04-18', 'Jual ulat 1,7kg', 'pemasukan', 86000);
+            push('2026-04-27', 'Jual ulat 1kg', 'pemasukan', 51000);
+            push('2026-04-05', 'Beli 511 0,5kg', 'pengeluaran', 6500);
+            push('2026-04-07', 'Beli 511 0,5kg', 'pengeluaran', 13000);
+            push('2026-04-07', 'Beli huut 6kg', 'pengeluaran', 21000);
+            push('2026-04-07', 'Ngasih mang enuh (dage)', 'pengeluaran', 25000);
+            push('2026-04-07', 'Beli Ramkawat mes 3,5 50cm', 'pengeluaran', 60000);
+            push('2026-04-07', 'Beli kai 1 Ikat', 'pengeluaran', 6000);
+            push('2026-04-10', 'Beli 511 0,5kg', 'pengeluaran', 6500);
+            push('2026-04-18', 'Beli huut 2kg', 'pengeluaran', 10000);
+            push('2026-04-18', 'Beli waluh', 'pengeluaran', 5000);
+            push('2026-04-20', 'Beli triplek 120×140cm', 'pengeluaran', 68000);
+            push('2026-04-23', 'Beli 511 1kg', 'pengeluaran', 13000);
+            push('2026-05-07', 'Jual ulat 0,5kg', 'pemasukan', 18000);
+            push('2026-05-14', 'Jual ulat 250g', 'pemasukan', 12500);
+            push('2026-05-15', 'Jual ulat 250g', 'pemasukan', 12500);
+            push('2026-05-19', 'Jual ulat 300g', 'pemasukan', 15000);
+            push('2026-05-24', 'Jual ulat 375g', 'pemasukan', 18500);
+            push('2026-05-29', 'Jual ulat 410g', 'pemasukan', 21500);
+            push('2026-05-07', 'Beli 511 1kg', 'pengeluaran', 13000);
+            push('2026-05-07', 'Beli huut 10kg', 'pengeluaran', 34500);
+            push('2026-05-11', 'Beli 511 0,5kg', 'pengeluaran', 6500);
+            push('2026-05-19', 'Beli 511 0,5kg', 'pengeluaran', 6500);
+            push('2026-05-23', 'Beli 511 0,5kg', 'pengeluaran', 6500);
+            push('2026-05-26', 'Beli 511 0,5kg', 'pengeluaran', 6500);
+            push('2026-05-29', 'Beli 511 1kg', 'pengeluaran', 13000);
+            push('2026-05-31', 'Beli 511 1kg', 'pengeluaran', 13000);
+            push('2026-06-01', 'Jual ulat 0,5kg', 'pemasukan', 27000);
+            push('2026-06-05', 'Jual ulat 1,1kg', 'pemasukan', 64000);
+            push('2026-06-17', 'Jual ulat 1,1kg', 'pemasukan', 63500);
+            push('2026-06-26', 'Jual ulat 1,08kg', 'pemasukan', 60000);
+            push('2026-06-13', 'Beli 511 1kg', 'pengeluaran', 13000);
+            push('2026-06-17', 'Beli 511 1kg', 'pengeluaran', 13000);
+            push('2026-06-17', 'Ngasih mg nuh', 'pengeluaran', 20000);
+            push('2026-06-25', 'Beli 511 0,5kg', 'pengeluaran', 6500);
+            push('2026-06-28', 'Beli 511 0,5kg', 'pengeluaran', 13000);
+            push('2026-06-28', 'Beli Reng 1 ikat', 'pengeluaran', 65000);
+            push('2026-06-28', 'Beli paku', 'pengeluaran', 5000);
+            push('2026-06-29', 'Beli engsel 2', 'pengeluaran', 4000);
+            push('2026-06-30', 'Beli 511 1kg', 'pengeluaran', 13000);
+            push('2026-06-30', 'Beli pollard 10kg', 'pengeluaran', 70000);
+            push('2026-07-05', 'Jual ulat 800g', 'pemasukan', 46500);
+            push('2026-07-08', 'Beli 511 1kg', 'pengeluaran', 13000);
+            push('2026-07-11', 'Beli 511 250g', 'pengeluaran', 3500);
+
+            return data;
+        }
+
+        // ================================================================
+        //  DATA AWAL PERTUMBUHAN
+        // ================================================================
+        function getGrowthAwal() {
+            const data = [];
+            const push = (kategori, gen, tgl, status) => {
+                data.push({
+                    id: Date.now() + Math.random() * 1000 + data.length,
+                    kategori: kategori,
+                    gen: gen,
+                    tgl: tgl,
+                    status: status
+                });
+            };
+
+            // Pindah Media
+            push('pindah', 'Gen 3', '15 Februari 2026', 'done');
+            push('pindah', 'Gen 4', '1 Maret 2026', 'done');
+            push('pindah', 'Gen 5', '10 Maret 2026', 'done');
+            push('pindah', 'Gen 6', '20 Maret 2026', 'done');
+            push('pindah', 'Gen 7', '30 Maret 2026', 'done');
+            push('pindah', 'Gen 8', '10 April 2026', 'done');
+            push('pindah', 'Gen 9', '23 April 2026', 'done');
+            push('pindah', 'Gen 11', '30 April 2026', 'done');
+            push('pindah', 'Gen 12', '10 Mei 2026', 'done');
+            push('pindah', 'Gen 13', '20 Mei 2026', 'done');
+            push('pindah', 'Gen 14', '30 Mei 2026', 'done');
+            push('pindah', 'Gen 15', '10 Juni 2026', 'done');
+            push('pindah', 'Gen 16', '20 Juni 2026', 'done');
+            push('pindah', 'Gen 17', '30 Juni 2026', 'done');
+            push('pindah', 'Gen 18', '10 Juli 2026', 'done');
+            push('pindah', 'Gen 19', '20 Juli 2026', 'pending');
+            push('pindah', 'Gen 20', '30 Juli 2026', 'pending');
+
+            // Kepompong
+            push('kepompong', 'Gen 1', '19 Maret 2026', 'done');
+            push('kepompong', 'Gen 2', '5 April 2026', 'done');
+            push('kepompong', 'Gen 3', '23 April 2026', 'done');
+            push('kepompong', 'Gen 4', '-- -- 2026', 'pending');
+            push('kepompong', 'Gen 5', '-- -- 2026', 'pending');
+            push('kepompong', 'Gen 6', '-- -- 2026', 'pending');
+            push('kepompong', 'Gen 7', '-- -- 2026', 'pending');
+            push('kepompong', 'Gen 8', '-- -- 2026', 'pending');
+            push('kepompong', 'Gen 9', '-- -- 2026', 'pending');
+            push('kepompong', 'Gen 10', '-- -- 2026', 'pending');
+
+            // Kepik
+            push('kepik', 'Gen 1', '1 Maret 2026', 'done');
+            push('kepik', 'Gen 2', '23 April 2026', 'done');
+            push('kepik', 'Gen 3', '11 Mei 2026', 'done');
+            push('kepik', 'Gen 4', '-- ---- 2026', 'pending');
+            push('kepik', 'Gen 5', '-- ---- 2026', 'pending');
+            push('kepik', 'Gen 6', '-- ---- 2026', 'pending');
+            push('kepik', 'Gen 7', '-- ---- 2026', 'pending');
+            push('kepik', 'Gen 8', '-- ---- 2026', 'pending');
+            push('kepik', 'Gen 9', '-- ---- 2026', 'pending');
+            push('kepik', 'Gen 10', '-- ---- 2026', 'pending');
+
+            // Panen
+            push('panen', 'Gen 3', '7 Mei 2026', 'done');
+            push('panen', 'Gen 4', '14 Mei 2026', 'done');
+            push('panen', 'Gen 5', '29 Mei 2026', 'done');
+            push('panen', 'Gen 6', 'gagal (mati masal) 2026', 'fail');
+            push('panen', 'Gen 7', 'gagal (mati masal) 2026', 'fail');
+            push('panen', 'Gen 8', '- - 2026', 'pending');
+            push('panen', 'Gen 9', '- - 2026', 'pending');
+            push('panen', 'Gen 10', '- - 2026', 'pending');
+
+            return data;
+        }
+
+        // ================================================================
+        //  RENDER KEUANGAN
+        // ================================================================
+        function formatRupiah(n) {
+            return 'Rp ' + n.toLocaleString('id-ID');
+        }
+
+        function formatTgl(tgl) {
+            const d = new Date(tgl + 'T00:00:00');
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+        }
+
+        function getBulanKey(tgl) {
+            const d = new Date(tgl + 'T00:00:00');
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+        }
+
+        function getBulanLabel(key) {
+            if (key === 'semua') return 'Semua';
+            const [thn, bln] = key.split('-');
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            return months[parseInt(bln) - 1] + ' ' + thn;
+        }
+
+        function getBulanList() {
+            const set = new Set();
+            transaksi.forEach(t => {
+                set.add(getBulanKey(t.tanggal));
+            });
+            return Array.from(set).sort();
+        }
+
+        function renderFilter() {
+    const wrap = document.getElementById('filterWrap');
+    const bulanList = getBulanList();
+
+    let html = `
+        <button class="filter-btn px-4 py-1.5 rounded-full border-2 border-[#d6cbbc] text-sm font-medium ${
+            filterBulan === 'semua'
+                ? 'active bg-[#2d2a24] text-white border-[#2d2a24]'
+                : 'bg-white text-[#4d4337]'
+        }" data-bulan="semua">
+            📅 Semua
+        </button>
+    `;
+
+    bulanList.forEach(b => {
+        html += `
+            <button class="filter-btn px-4 py-1.5 rounded-full border-2 border-[#d6cbbc] text-sm font-medium ${
+                filterBulan === b
+                    ? 'active bg-[#2d2a24] text-white border-[#2d2a24]'
+                    : 'bg-white text-[#4d4337]'
+            }" data-bulan="${b}">
+                ${getBulanLabel(b)}
+            </button>
+        `;
+    });
+
+    wrap.innerHTML = html;
+
+    wrap.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.onclick = function () {
+            filterBulan = this.dataset.bulan;
+            showAll = false;
+            renderAll();
+        };
+    });
+}
+
+        function renderRekapBulanan() {
+            const list = document.getElementById('rekapList');
+            const bulanList = getBulanList();
+
+            if (bulanList.length === 0) {
+                list.innerHTML = `<div class="text-center text-xs text-[#8a7d6b] py-2">Belum ada data</div>`;
+                return;
+            }
+
+            let html = '';
+            const sorted = [...bulanList].sort().reverse();
+            sorted.forEach(key => {
+                const filtered = transaksi.filter(t => getBulanKey(t.tanggal) === key);
+                let totalIn = 0,
+                    totalOut = 0;
+                filtered.forEach(t => {
+                    if (t.jenis === 'pemasukan') totalIn += t.jumlah;
+                    else totalOut += t.jumlah;
+                });
+                const saldo = totalIn - totalOut;
+                const label = getBulanLabel(key);
+                const isActive = filterBulan === key;
+
+                html += `
+                    <div class="rekap-item py-1.5 flex justify-between text-sm ${isActive ? 'bg-[#f8f3eb] -mx-1 px-1 rounded' : ''}">
+                        <span class="font-medium text-[#2d2a24]">${label}</span>
+                        <span class="text-green-700">${formatRupiah(totalIn)}</span>
+                        <span class="text-red-600">${formatRupiah(totalOut)}</span>
+                        <span class="font-semibold ${saldo >= 0 ? 'text-green-700' : 'text-red-600'}">${formatRupiah(saldo)}</span>
+                    </div>
+                `;
+            });
+
+            list.innerHTML = html;
+        }
+
+        function renderTransaksi() {
+            const list = document.getElementById('transaksiList');
+            const judul = document.getElementById('judulList');
+            const jumlahFilter = document.getElementById('jumlahFilter');
+
+            let filtered = transaksi;
+            if (filterBulan !== 'semua') {
+                filtered = filtered.filter(t => getBulanKey(t.tanggal) === filterBulan);
+            }
+
+            const displayed = showAll ? filtered : filtered.slice(0, 5);
+
+            const bulanLabel = filterBulan === 'semua' ? 'Semua' : getBulanLabel(filterBulan);
+            judul.textContent = `📋 Transaksi ${bulanLabel}`;
+            jumlahFilter.textContent = `${filtered.length} transaksi`;
+
+            if (displayed.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-12 text-[#8a7d6b]">
+                        <span class="text-4xl block mb-2">📭</span>
+                        <p>Tidak ada transaksi</p>
+                        <p class="text-sm">Klik "Tambah Transaksi" untuk mulai</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            displayed.forEach(t => {
+                const isIncome = t.jenis === 'pemasukan';
+                const icon = isIncome ? '' : '';
+                const amountClass = isIncome ? 'text-green-700' : 'text-red-600';
+                const sign = isIncome ? '+' : '-';
+
+                html += `
+                    <div class="bg-white rounded-2xl px-4 py-3 flex justify-between items-center shadow-sm border border-[#e8dfd3] trans-item cursor-pointer" data-id="${t.id}">
+                        <div class="flex-1 min-w-0">
+                            <span class="text-xs text-[#8a7d6b] font-medium">${icon} ${formatTgl(t.tanggal)}</span>
+                            <p class="text-sm font-medium text-[#2d2a24] truncate">${t.deskripsi}</p>
+                        </div>
+                        <div class="flex items-center gap-3 flex-shrink-0 ml-3">
+                            <span class="font-bold text-sm ${amountClass}">${sign} ${formatRupiah(t.jumlah)}</span>
+                            <button class="btn-del text-[#b1a18c] hover:text-red-500 text-lg px-1" data-id="${t.id}">✕</button>
+                        </div>
+                    </div>
+                `;
+            });
+            list.innerHTML = html;
+
+            list.querySelectorAll('.trans-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    if (e.target.closest('.btn-del')) return;
+                    const id = parseFloat(this.dataset.id);
+                    editTransaksi(id);
+                });
+            });
+
+            list.querySelectorAll('.btn-del').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const id = parseFloat(this.dataset.id);
+                    if (confirm('Hapus transaksi ini?')) {
+                        hapusTransaksi(id);
+                    }
+                });
+            });
+
+            const btnLihat = document.getElementById('btnLihatSemua');
+            if (filtered.length > 5) {
+                btnLihat.classList.remove('hidden');
+                btnLihat.textContent = showAll ? '📊 Tampilkan 5 Terakhir' :
+                    `📊 Lihat Semua (${filtered.length} transaksi)`;
+            } else {
+                btnLihat.classList.add('hidden');
+            }
+        }
+
+        function renderSaldo() {
+            let totalIn = 0,
+                totalOut = 0;
+            transaksi.forEach(t => {
+                if (t.jenis === 'pemasukan') totalIn += t.jumlah;
+                else totalOut += t.jumlah;
+            });
+            const saldo = totalIn - totalOut;
+
+            document.getElementById('totalPemasukan').textContent = formatRupiah(totalIn);
+            document.getElementById('totalPengeluaran').textContent = formatRupiah(totalOut);
+
+            const elSaldo = document.getElementById('saldoTotal');
+            elSaldo.textContent = formatRupiah(saldo);
+            elSaldo.className = 'text-3xl font-bold ' + (saldo >= 0 ? 'text-green-400' : 'text-red-400');
+
+            document.getElementById('totalTransaksi').textContent = transaksi.length + ' transaksi';
+        }
+
+        // ================================================================
+        //  RENDER PERTUMBUHAN
+        // ================================================================
+        function getKategoriLabel(kategori) {
+            const map = {
+                'pindah': '🔄 Pindah Media',
+                'kepompong': '🟤 Kepompong',
+                'kepik': '🐞 Kepik',
+                'panen': '🌾 Panen'
+            };
+            return map[kategori] || kategori;
+        }
+
+        function getStatusLabel(status) {
+            const map = {
+                'done': '✅ Selesai',
+                'pending': '⏳ Menunggu',
+                'fail': '❌ Gagal'
+            };
+            return map[status] || status;
+        }
+
+        function renderGrowthFilter() {
+
+    const wrap = document.getElementById("growthFilterWrap");
+
+    const kategoriList = [
+        "semua",
+        "pindah",
+        "kepompong",
+        "kepik",
+        "panen"
+    ];
+
+    let html = "";
+
+    kategoriList.forEach(k=>{
+
+        const label = k==="semua"
+            ? "📋 Semua"
+            : getKategoriLabel(k);
+
+        html += `
+            <button
+                class="filter-btn px-4 py-1.5 rounded-full border-2 border-[#d6cbbc] text-sm font-medium ${
+                    filterKategori===k
+                        ? "active bg-[#2d2a24] text-white border-[#2d2a24]"
+                        : "bg-white text-[#4d4337]"
+                }"
+                data-kategori="${k}">
+                ${label}
+            </button>
+        `;
+
+    });
+
+    wrap.innerHTML = html;
+
+    wrap.querySelectorAll(".filter-btn").forEach(btn=>{
+
+        btn.onclick=function(){
+
+            filterKategori=this.dataset.kategori;
+
+            renderGrowthFilter();
+
+            renderGrowth();
+
+        };
+
+    });
+
+}
+
+        function renderGrowth() {
+            const list = document.getElementById('growthList');
+
+            let filtered = growthData;
+            if (filterKategori !== 'semua') {
+                filtered = filtered.filter(g => g.kategori === filterKategori);
+            }
+
+            // Sort by kategori then gen
+            const kategoriOrder = { 'pindah': 1, 'kepompong': 2, 'kepik': 3, 'panen': 4 };
+            filtered.sort((a, b) => {
+                if (kategoriOrder[a.kategori] !== kategoriOrder[b.kategori]) {
+                    return kategoriOrder[a.kategori] - kategoriOrder[b.kategori];
+                }
+                return a.gen.localeCompare(b.gen);
+            });
+
+            if (filtered.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-12 text-[#8a7d6b]">
+                        <span class="text-4xl block mb-2">🌱</span>
+                        <p>Belum ada data pertumbuhan</p>
+                        <p class="text-sm">Klik "Tambah Data Pertumbuhan" untuk mulai</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            let currentKategori = '';
+            filtered.forEach(g => {
+                const statusClass = g.status;
+                const statusLabel = getStatusLabel(g.status);
+
+                if (g.kategori !== currentKategori) {
+                    currentKategori = g.kategori;
+                    html += `
+                        <div class="bg-white rounded-2xl p-3 shadow-sm border border-[#e8dfd3] mt-3 first:mt-0">
+                            <p class="text-xs font-semibold text-[#8a7d6b] uppercase tracking-wider mb-2">${getKategoriLabel(g.kategori)}</p>
+                    `;
+                }
+
+                html += `
+                    <div class="growth-item flex justify-between items-center py-2 border-b border-[#f0e9df] last:border-0 cursor-pointer" data-id="${g.id}">
+                        <div>
+                            <span class="font-medium text-sm text-[#2d2a24]">${g.gen}</span>
+                            <span class="text-xs text-[#8a7d6b] ml-2">${g.tgl}</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="growth-status ${statusClass}">${statusLabel}</span>
+                            <button class="btn-del-growth text-[#b1a18c] hover:text-red-500 text-lg px-1" data-id="${g.id}">✕</button>
+                        </div>
+                    </div>
+                `;
+
+                // Close kategori div after last item of that kategori
+                const nextIndex = filtered.indexOf(g) + 1;
+                if (nextIndex === filtered.length || filtered[nextIndex].kategori !== g.kategori) {
+                    html += `</div>`;
+                }
+            });
+
+            list.innerHTML = html;
+
+            // Click item to edit
+            list.querySelectorAll('.growth-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    if (e.target.closest('.btn-del-growth')) return;
+                    const id = parseFloat(this.dataset.id);
+                    editGrowth(id);
+                });
+            });
+
+            // Delete
+            list.querySelectorAll('.btn-del-growth').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const id = parseFloat(this.dataset.id);
+                    if (confirm('Hapus data pertumbuhan ini?')) {
+                        hapusGrowth(id);
+                    }
+                });
+            });
+
+            renderGrowthStats();
+        }
+
+        function renderGrowthStats() {
+            const stats = document.getElementById('growthStats');
+            const total = growthData.length;
+            const done = growthData.filter(g => g.status === 'done').length;
+            const pending = growthData.filter(g => g.status === 'pending').length;
+            const fail = growthData.filter(g => g.status === 'fail').length;
+
+            let html = `
+                <div class="bg-[#f8f3eb] rounded-xl p-2 text-center">
+                    <p class="text-xs text-[#8a7d6b]">Total Data</p>
+                    <p class="font-bold text-lg">${total}</p>
+                </div>
+                <div class="bg-green-50 rounded-xl p-2 text-center">
+                    <p class="text-xs text-[#8a7d6b]">✅ Selesai</p>
+                    <p class="font-bold text-lg text-green-700">${done}</p>
+                </div>
+                <div class="bg-yellow-50 rounded-xl p-2 text-center">
+                    <p class="text-xs text-[#8a7d6b]">⏳ Menunggu</p>
+                    <p class="font-bold text-lg text-yellow-700">${pending}</p>
+                </div>
+                <div class="bg-red-50 rounded-xl p-2 text-center">
+                    <p class="text-xs text-[#8a7d6b]">❌ Gagal</p>
+                    <p class="font-bold text-lg text-red-700">${fail}</p>
+                </div>
+            `;
+
+            stats.innerHTML = html;
+        }
+
+        // ================================================================
+        //  CRUD KEUANGAN
+        // ================================================================
+        function tambahTransaksi(tgl, deskripsi, jenis, jumlah) {
+            const newT = {
+                id: Date.now() + Math.random() * 1000,
+                tanggal: tgl,
+                deskripsi: deskripsi.trim(),
+                jenis,
+                jumlah: parseInt(jumlah)
+            };
+            transaksi.push(newT);
+            transaksi.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+            saveData();
+            renderAll();
+        }
+
+        function editTransaksi(id) {
+            const t = transaksi.find(item => item.id === id);
+            if (!t) return;
+            editingId = id;
+            document.getElementById('modalTitle').textContent = 'Edit Transaksi';
+            document.getElementById('inputJenis').value = t.jenis;
+            document.getElementById('inputTanggal').value = t.tanggal;
+            document.getElementById('inputDeskripsi').value = t.deskripsi;
+            document.getElementById('inputJumlah').value = t.jumlah;
+            document.getElementById('btnHapus').classList.remove('hidden');
+            document.getElementById('modalOverlay').classList.remove('hidden');
+        }
+
+        function simpanTransaksi() {
+            const jenis = document.getElementById('inputJenis').value;
+            const tanggal = document.getElementById('inputTanggal').value;
+            const deskripsi = document.getElementById('inputDeskripsi').value.trim();
+            const jumlah = parseInt(document.getElementById('inputJumlah').value);
+
+            if (!tanggal || !deskripsi || !jumlah || jumlah <= 0) {
+                alert('Harap isi semua data dengan benar!');
+                return;
+            }
+
+            if (editingId) {
+                const idx = transaksi.findIndex(t => t.id === editingId);
+                if (idx !== -1) {
+                    transaksi[idx] = { ...transaksi[idx], tanggal, deskripsi, jenis, jumlah };
+                    transaksi.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+                    saveData();
+                    renderAll();
+                }
+                editingId = null;
+            } else {
+                tambahTransaksi(tanggal, deskripsi, jenis, jumlah);
+            }
+
+            closeModal();
+        }
+
+        function hapusTransaksi(id) {
+            transaksi = transaksi.filter(t => t.id !== id);
+            saveData();
+            renderAll();
+            if (editingId === id) closeModal();
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.add('hidden');
+            document.getElementById('btnHapus').classList.add('hidden');
+            editingId = null;
+            document.getElementById('modalTitle').textContent = 'Tambah Transaksi';
+            document.getElementById('inputJenis').value = 'pemasukan';
+            document.getElementById('inputTanggal').value = '';
+            document.getElementById('inputDeskripsi').value = '';
+            document.getElementById('inputJumlah').value = '';
+        }
+
+        // ================================================================
+        //  CRUD PERTUMBUHAN
+        // ================================================================
+        function tambahGrowth(kategori, gen, tgl, status) {
+            const newG = {
+                id: Date.now() + Math.random() * 1000,
+                kategori: kategori,
+                gen: gen.trim(),
+                tgl: tgl.trim(),
+                status: status
+            };
+            growthData.push(newG);
+            saveGrowth();
+            renderGrowth();
+        }
+
+        function editGrowth(id) {
+            const g = growthData.find(item => item.id === id);
+            if (!g) return;
+            editingGrowthId = id;
+            document.getElementById('modalGrowthTitle').textContent = 'Edit Data Pertumbuhan';
+            document.getElementById('inputGrowthKategori').value = g.kategori;
+            document.getElementById('inputGrowthGen').value = g.gen;
+            document.getElementById('inputGrowthTgl').value = g.tgl;
+            document.getElementById('inputGrowthStatus').value = g.status;
+            document.getElementById('btnHapusGrowth').classList.remove('hidden');
+            document.getElementById('modalGrowthOverlay').classList.remove('hidden');
+        }
+
+        function simpanGrowth() {
+            const kategori = document.getElementById('inputGrowthKategori').value;
+            const gen = document.getElementById('inputGrowthGen').value.trim();
+            const tgl = document.getElementById('inputGrowthTgl').value.trim();
+            const status = document.getElementById('inputGrowthStatus').value;
+
+            if (!gen || !tgl) {
+                alert('Harap isi Generasi dan Tanggal!');
+                return;
+            }
+
+            if (editingGrowthId) {
+                const idx = growthData.findIndex(g => g.id === editingGrowthId);
+                if (idx !== -1) {
+                    growthData[idx] = { ...growthData[idx], kategori, gen, tgl, status };
+                    saveGrowth();
+                    renderGrowth();
+                }
+                editingGrowthId = null;
+            } else {
+                tambahGrowth(kategori, gen, tgl, status);
+            }
+
+            closeModalGrowth();
+        }
+
+        function hapusGrowth(id) {
+            growthData = growthData.filter(g => g.id !== id);
+            saveGrowth();
+            renderGrowth();
+            if (editingGrowthId === id) closeModalGrowth();
+        }
+
+        function closeModalGrowth() {
+            document.getElementById('modalGrowthOverlay').classList.add('hidden');
+            document.getElementById('btnHapusGrowth').classList.add('hidden');
+            editingGrowthId = null;
+            document.getElementById('modalGrowthTitle').textContent = 'Tambah Data Pertumbuhan';
+            document.getElementById('inputGrowthKategori').value = 'pindah';
+            document.getElementById('inputGrowthGen').value = '';
+            document.getElementById('inputGrowthTgl').value = '';
+            document.getElementById('inputGrowthStatus').value = 'pending';
+        }
+
+        // ================================================================
+        //  RENDER ALL
+        // ================================================================
+        function renderAll() {
+            renderFilter();
+            renderRekapBulanan();
+            renderTransaksi();
+            renderSaldo();
+        }
+
+        // ================================================================
+        //  TAB NAVIGATION
+        // ================================================================
+        function switchTab(tab) {
+            const tabKeuangan = document.getElementById('tabKeuangan');
+            const tabPertumbuhan = document.getElementById('tabPertumbuhan');
+            const buttons = document.querySelectorAll('.tab-btn');
+
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.tab === tab) {
+                    btn.classList.add('active');
+                }
+            });
+
+            if (tab === 'keuangan') {
+                tabKeuangan.classList.remove('hidden');
+                tabPertumbuhan.classList.add('hidden');
+                renderAll();
+            } else {
+                tabKeuangan.classList.add('hidden');
+                tabPertumbuhan.classList.remove('hidden');
+                renderGrowthFilter();
+                renderGrowth();
+            }
+        }
+
+        // ================================================================
+        //  EVENT LISTENERS
+        // ================================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+
+            // Default: tab keuangan
+            switchTab('keuangan');
+
+            // Tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    switchTab(this.dataset.tab);
+                });
+            });
+
+            // ===== KEUANGAN =====
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('inputTanggal').value = today;
+
+            document.getElementById('btnTambah').addEventListener('click', function() {
+                editingId = null;
+                document.getElementById('modalTitle').textContent = 'Tambah Transaksi';
+                document.getElementById('btnHapus').classList.add('hidden');
+                document.getElementById('inputJenis').value = 'pemasukan';
+                document.getElementById('inputTanggal').value = new Date().toISOString().split('T')[0];
+                document.getElementById('inputDeskripsi').value = '';
+                document.getElementById('inputJumlah').value = '';
+                document.getElementById('modalOverlay').classList.remove('hidden');
+            });
+
+            document.getElementById('btnLihatSemua').addEventListener('click', function() {
+                showAll = !showAll;
+                renderAll();
+            });
+
+            document.getElementById('btnSimpan').addEventListener('click', simpanTransaksi);
+            document.getElementById('btnBatal').addEventListener('click', closeModal);
+
+            document.getElementById('btnHapus').addEventListener('click', function() {
+                if (editingId && confirm('Yakin hapus transaksi ini?')) {
+                    hapusTransaksi(editingId);
+                }
+            });
+
+            document.getElementById('modalOverlay').addEventListener('click', function(e) {
+                if (e.target === this) closeModal();
+            });
+
+            document.getElementById('inputJumlah').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') simpanTransaksi();
+            });
+
+            // ===== PERTUMBUHAN =====
+            document.getElementById('btnTambahGrowth').addEventListener('click', function() {
+                editingGrowthId = null;
+                document.getElementById('modalGrowthTitle').textContent = 'Tambah Data Pertumbuhan';
+                document.getElementById('btnHapusGrowth').classList.add('hidden');
+                document.getElementById('inputGrowthKategori').value = 'pindah';
+                document.getElementById('inputGrowthGen').value = '';
+                document.getElementById('inputGrowthTgl').value = '';
+                document.getElementById('inputGrowthStatus').value = 'pending';
+                document.getElementById('modalGrowthOverlay').classList.remove('hidden');
+            });
+
+            document.getElementById('btnSimpanGrowth').addEventListener('click', simpanGrowth);
+            document.getElementById('btnBatalGrowth').addEventListener('click', closeModalGrowth);
+
+            document.getElementById('btnHapusGrowth').addEventListener('click', function() {
+                if (editingGrowthId && confirm('Yakin hapus data pertumbuhan ini?')) {
+                    hapusGrowth(editingGrowthId);
+                }
+            });
+
+            document.getElementById('modalGrowthOverlay').addEventListener('click', function(e) {
+                if (e.target === this) closeModalGrowth();
+            });
+
+            document.getElementById('inputGrowthGen').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') simpanGrowth();
+            });
+            document.getElementById('inputGrowthTgl').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') simpanGrowth();
+            });
+        });
+    </script>
+
+</body>
+</html>
