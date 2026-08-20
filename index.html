@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard Bisnis</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -44,7 +44,7 @@
 
         <!-- ===== GREETING ===== -->
         <div class="mb-6">
-            <h2 class="text-2xl font-bold text-[#2d2a24]">Welcome Enterpreneur! 👋</h2>
+            <h2 class="text-2xl font-bold text-[#2d2a24]">Welcome Entrepreneur! 👋</h2>
             <p class="text-[#8a7d6b] text-sm mt-1">Pilih bisnis yang ingin dikelola</p>
         </div>
 
@@ -65,7 +65,7 @@
             <div class="bg-gradient-ulat text-white rounded-2xl p-6 shadow-lg">
                 <div class="flex justify-between items-start">
                     <div>
-                        <span class="text-4xl"></span>
+                        <span class="text-4xl">🐛</span>
                         <h3 class="text-xl font-bold mt-2">Bisnis Ulat Hongkong</h3>
                         <p class="text-sm opacity-80 mt-1">Kelola keuangan &amp; pertumbuhan ulat</p>
                     </div>
@@ -98,7 +98,7 @@
             <div class="bg-gradient-dedak text-white rounded-2xl p-6 shadow-lg">
                 <div class="flex justify-between items-start">
                     <div>
-                        <span class="text-4xl"></span>
+                        <span class="text-4xl">🌾</span>
                         <h3 class="text-xl font-bold mt-2">Bisnis Dedak</h3>
                         <p class="text-sm opacity-80 mt-1">Kelola pengambilan &amp; penjualan dedak</p>
                     </div>
@@ -125,6 +125,21 @@
                 </div>
             </div>
         </a>
+
+        <!-- ===== BACKUP DATA ===== -->
+        <div class="bg-white rounded-2xl p-4 mt-6 shadow-sm border border-[#e8dfd3]">
+            <p class="text-xs font-semibold text-[#8a7d6b] uppercase tracking-wider mb-2">💾 Backup Semua Data</p>
+            <p class="text-xs text-[#8a7d6b] mb-3">Simpan seluruh data bisnis ke satu file, atau pulihkan kembali dari file backup.</p>
+            <div class="flex gap-2">
+                <button id="btnBackup" class="flex-1 bg-[#3d352b] hover:bg-[#2d2a24] active:scale-95 transition text-white font-semibold py-3 rounded-xl text-sm">
+                    📥 Simpan ke File
+                </button>
+                <button id="btnRestore" class="flex-1 bg-white border border-[#d6cbbc] hover:bg-[#f8f3eb] active:scale-95 transition text-[#4d4337] font-semibold py-3 rounded-xl text-sm">
+                    📤 Muat dari File
+                </button>
+            </div>
+            <input type="file" id="fileRestore" accept=".json,application/json" class="hidden" />
+        </div>
 
         <!-- ===== FOOTER ===== -->
         <div class="mt-8 text-center text-xs text-[#b1a18c] border-t border-[#e8dfd3] pt-4">
@@ -182,9 +197,79 @@
         }
 
         // ================================================================
+        //  BACKUP & RESTORE
+        // ================================================================
+        function getTglFile() {
+            const now = new Date();
+            return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+        }
+
+        function downloadJson(nama, data) {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = nama;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function backupSemua() {
+            const payload = {
+                app: 'manajemen-bisnis-pribadi',
+                tanggal: new Date().toISOString(),
+                ulat_hongkong_transaksi: JSON.parse(localStorage.getItem('ulat_hongkong_transaksi') || '[]'),
+                ulat_hongkong_growth: JSON.parse(localStorage.getItem('ulat_hongkong_growth') || '[]'),
+                bisnis_dedak: JSON.parse(localStorage.getItem('bisnis_dedak') || '{"pengambilan":[],"tempat":[]}')
+            };
+            downloadJson('backup-semua-bisnis-' + getTglFile() + '.json', payload);
+        }
+
+        function restoreSemua(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (Array.isArray(data.transaksi) && Array.isArray(data.growth)) {
+                        localStorage.setItem('ulat_hongkong_transaksi', JSON.stringify(data.transaksi));
+                        localStorage.setItem('ulat_hongkong_growth', JSON.stringify(data.growth));
+                    } else if (Array.isArray(data.pengambilan) && Array.isArray(data.tempat)) {
+                        localStorage.setItem('bisnis_dedak', JSON.stringify({ pengambilan: data.pengambilan, tempat: data.tempat }));
+                    } else if (Array.isArray(data.ulat_hongkong_transaksi) && Array.isArray(data.ulat_hongkong_growth) && data.bisnis_dedak) {
+                        localStorage.setItem('ulat_hongkong_transaksi', JSON.stringify(data.ulat_hongkong_transaksi));
+                        localStorage.setItem('ulat_hongkong_growth', JSON.stringify(data.ulat_hongkong_growth));
+                        localStorage.setItem('bisnis_dedak', JSON.stringify(data.bisnis_dedak));
+                    } else {
+                        throw new Error('format tidak dikenal');
+                    }
+                    loadStats();
+                    alert('Data berhasil dipulihkan!');
+                } catch (err) {
+                    alert('File tidak valid! Pastikan Anda memilih file backup yang benar.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ================================================================
         //  RUN
         // ================================================================
         document.addEventListener('DOMContentLoaded', loadStats);
+
+        document.getElementById('btnBackup').addEventListener('click', backupSemua);
+        document.getElementById('btnRestore').addEventListener('click', function() {
+            document.getElementById('fileRestore').click();
+        });
+        document.getElementById('fileRestore').addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                if (confirm('Muat data dari file? Data saat ini akan diganti.')) {
+                    restoreSemua(e.target.files[0]);
+                }
+            }
+            this.value = '';
+        });
 
         // Refresh data setiap kali tab di-focus
         document.addEventListener('visibilitychange', function() {
