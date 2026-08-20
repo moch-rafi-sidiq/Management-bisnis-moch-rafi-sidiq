@@ -78,7 +78,7 @@
         <!-- ===== HEADER ===== -->
         <header class="flex justify-between items-center pb-4 mb-4 border-b-2 border-[#d6cbbc]">
             <h1 class="text-xl font-bold text-[#3d352b]">
-                <span class="text-2xl"></span> Bisnis Dedak
+                <span class="text-2xl">📦</span> Bisnis Dedak
             </h1>
             <span class="bg-[#3d352b] text-[#f5ede2] px-3 py-1 rounded-full text-xs font-semibold" id="totalItems">
                 0 item
@@ -205,6 +205,24 @@
             </button>
         </div>
 
+        <!-- ===== BACKUP DATA ===== -->
+        <div class="bg-white rounded-2xl p-4 mt-4 shadow-sm border border-[#e8dfd3]">
+            <p class="text-xs font-semibold text-[#8a7d6b] uppercase tracking-wider mb-2">💾 Backup Data</p>
+            <p class="text-xs text-[#8a7d6b] mb-3">Simpan semua data ke file untuk cadangan (mis. saat pindah HP), atau muat kembali dari file backup.</p>
+            <div class="flex gap-2">
+                <button id="btnExport" class="flex-1 bg-[#3d352b] hover:bg-[#2d2a24] active:scale-95 transition text-white font-semibold py-3 rounded-xl text-sm">
+                    📥 Simpan ke File
+                </button>
+                <button id="btnImport" class="flex-1 bg-white border border-[#d6cbbc] hover:bg-[#f8f3eb] active:scale-95 transition text-[#4d4337] font-semibold py-3 rounded-xl text-sm">
+                    📤 Muat dari File
+                </button>
+            </div>
+            <button id="btnExportCSV" class="w-full mt-2 bg-white border border-[#d6cbbc] hover:bg-[#f8f3eb] active:scale-95 transition text-[#4d4337] font-semibold py-2.5 rounded-xl text-sm">
+                📄 Export Data (CSV)
+            </button>
+            <input type="file" id="fileImport" accept=".json,application/json" class="hidden" />
+        </div>
+
         <!-- ============================================================ -->
         <!-- MODAL PENGAMBILAN -->
         <!-- ============================================================ -->
@@ -281,27 +299,6 @@
         let filterTempat = 'semua';
         let showAllPengambilan = false;
         let showAllTempat = false;
-
-        // ================================================================
-        //  LOAD & SAVE
-        // ================================================================
-        function loadData() {
-            const stored = localStorage.getItem(DEDAK_KEY);
-            if (stored) {
-                try {
-                    const data = JSON.parse(stored);
-                    pengambilan = data.pengambilan || [];
-                    tempat = data.tempat || [];
-                } catch {
-                    pengambilan = [];
-                    tempat = [];
-                }
-            } else {
-                pengambilan = getPengambilanAwal();
-                tempat = getTempatAwal();
-                saveData();
-            }
-        }
 
         function saveData() {
             localStorage.setItem(DEDAK_KEY, JSON.stringify({
@@ -426,6 +423,11 @@
 
         // ===== PENGAMBILAN =====
         function renderPengambilanFilter() {
+
+    if (!['semua', 'done', 'pending'].includes(filterPengambilan)) {
+        filterPengambilan = 'semua';
+        showAllPengambilan = false;
+    }
 
     renderUniversalFilter({
 
@@ -552,17 +554,22 @@
 
     tempat.forEach(t=>{
 
-        const p=t.tgl.split(" ");
+        const p=String(t.tgl || '').split(" ");
 
-        if(p.length>=3){
+        if(p.length>=1 && p[0] && p[1]){
 
-            bulanSet.add(p[1]+" "+p[2]);
+            bulanSet.add(p[1] + (p[2] ? " " + p[2] : ""));
 
         }
 
     });
 
     const bulanList=["semua",...Array.from(bulanSet).sort()];
+
+    if (filterTempat !== "semua" && !bulanList.includes(filterTempat)) {
+        filterTempat = "semua";
+        showAllTempat = false;
+    }
 
     renderUniversalFilter({
 
@@ -719,10 +726,20 @@
         // ================================================================
         //  CRUD PENGAMBILAN
         // ================================================================
+        function nextNomor(list) {
+            let max = 0;
+            list.forEach(x => {
+                const n = Number(x.nomor);
+                if (!isNaN(n) && n > max) max = n;
+            });
+            return max + 1;
+        }
+
         function tambahPengambilan(nomor, tgl, status) {
             const newP = { id: Date.now() + Math.random() * 1000, nomor: parseInt(nomor), tgl: tgl.trim(), status };
             pengambilan.push(newP);
             saveData();
+            updateTotalItems();
             renderPengambilan();
         }
 
@@ -748,6 +765,11 @@
                 return;
             }
 
+            if (!editingPengambilanId && pengambilan.some(p => p.nomor === parseInt(nomor))) {
+                alert('Nomor ' + nomor + ' sudah dipakai! Gunakan nomor lain.');
+                return;
+            }
+
             if (editingPengambilanId) {
                 const idx = pengambilan.findIndex(p => p.id === editingPengambilanId);
                 if (idx !== -1) {
@@ -765,6 +787,7 @@
         function hapusPengambilan(id) {
             pengambilan = pengambilan.filter(p => p.id !== id);
             saveData();
+            updateTotalItems();
             renderPengambilan();
             if (editingPengambilanId === id) closeModalPengambilan();
         }
@@ -787,6 +810,7 @@
                 profit: parseInt(profit) };
             tempat.push(newT);
             saveData();
+            updateTotalItems();
             renderTempat();
         }
 
@@ -814,6 +838,11 @@
                 return;
             }
 
+            if (!editingTempatId && tempat.some(t => t.nomor === parseInt(nomor))) {
+                alert('Nomor ' + nomor + ' sudah dipakai! Gunakan nomor lain.');
+                return;
+            }
+
             if (editingTempatId) {
                 const idx = tempat.findIndex(t => t.id === editingTempatId);
                 if (idx !== -1) {
@@ -831,6 +860,7 @@
         function hapusTempat(id) {
             tempat = tempat.filter(t => t.id !== id);
             saveData();
+            updateTotalItems();
             renderTempat();
             if (editingTempatId === id) closeModalTempat();
         }
@@ -844,6 +874,87 @@
             document.getElementById('inputTempatTgl').value = '';
             document.getElementById('inputTempatDesc').value = '';
             document.getElementById('inputTempatProfit').value = '';
+        }
+
+        // ================================================================
+        //  BACKUP & RESTORE
+        // ================================================================
+        function getTglFile() {
+            const now = new Date();
+            return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+        }
+
+        function downloadJson(nama, data) {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = nama;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportData() {
+            const payload = {
+                app: 'bisnis-dedak',
+                tanggal: new Date().toISOString(),
+                pengambilan: pengambilan,
+                tempat: tempat
+            };
+            downloadJson('backup-dedak-' + getTglFile() + '.json', payload);
+        }
+
+        function importData(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!data || !Array.isArray(data.pengambilan) || !Array.isArray(data.tempat)) {
+                        throw new Error('format tidak dikenal');
+                    }
+                    pengambilan = data.pengambilan;
+                    tempat = data.tempat;
+                    saveData();
+                    filterPengambilan = 'semua';
+                    filterTempat = 'semua';
+                    showAllPengambilan = false;
+                    showAllTempat = false;
+                    renderAll();
+                    alert('Data berhasil dimuat dari file backup!');
+                } catch (err) {
+                    alert('File tidak valid! Pastikan Anda memilih file backup yang benar.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function downloadCsv(nama, rows) {
+            const csv = rows.map(r => r.map(v => {
+                const s = String(v ?? '');
+                return /[";\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+            }).join(';')).join('\r\n');
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = nama;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportCSV() {
+            const rows = [['Jenis', 'Nomor', 'Tanggal', 'Keterangan', 'Profit (Rp)']];
+            pengambilan.forEach(p => {
+                rows.push(['Pengambilan', p.nomor, p.tgl, p.status === 'done' ? 'Selesai' : 'Menunggu', '']);
+            });
+            tempat.forEach(t => {
+                rows.push(['Tempat', t.nomor, t.tgl, t.desc, t.profit]);
+            });
+            downloadCsv('data-dedak-' + getTglFile() + '.csv', rows);
         }
 
         // ================================================================
@@ -864,14 +975,6 @@
         // ================================================================
         //  RENDER ALL & TAB
         // ================================================================
-        function renderAll() {
-            renderPengambilanFilter();
-            renderPengambilan();
-            renderTempatFilter();
-            renderTempat();
-            renderRekap();
-        }
-
         function switchTab(tab) {
             const tabs = ['pengambilan', 'tempat', 'rekap'];
             tabs.forEach(t => {
@@ -937,7 +1040,7 @@ function loadData() {
                 editingPengambilanId = null;
                 document.getElementById('modalPengambilanTitle').textContent = 'Tambah Pengambilan';
                 document.getElementById('btnHapusPengambilan').classList.add('hidden');
-                document.getElementById('inputPengambilanNomor').value = '';
+                document.getElementById('inputPengambilanNomor').value = nextNomor(pengambilan);
                 document.getElementById('inputPengambilanTgl').value = '';
                 document.getElementById('inputPengambilanStatus').value = 'done';
                 document.getElementById('modalPengambilanOverlay').classList.remove('hidden');
@@ -966,7 +1069,7 @@ function loadData() {
                 editingTempatId = null;
                 document.getElementById('modalTempatTitle').textContent = 'Tambah Transaksi Tempat';
                 document.getElementById('btnHapusTempat').classList.add('hidden');
-                document.getElementById('inputTempatNomor').value = '';
+                document.getElementById('inputTempatNomor').value = nextNomor(tempat);
                 document.getElementById('inputTempatTgl').value = '';
                 document.getElementById('inputTempatDesc').value = '';
                 document.getElementById('inputTempatProfit').value = '';
@@ -1000,6 +1103,21 @@ function loadData() {
             });
             document.getElementById('inputTempatProfit').addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') simpanTempat();
+            });
+
+            // ===== BACKUP =====
+            document.getElementById('btnExport').addEventListener('click', exportData);
+            document.getElementById('btnExportCSV').addEventListener('click', exportCSV);
+            document.getElementById('btnImport').addEventListener('click', function() {
+                document.getElementById('fileImport').click();
+            });
+            document.getElementById('fileImport').addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    if (confirm('Muat data dari file? Data saat ini akan diganti.')) {
+                        importData(e.target.files[0]);
+                    }
+                }
+                this.value = '';
             });
         });
     </script>
