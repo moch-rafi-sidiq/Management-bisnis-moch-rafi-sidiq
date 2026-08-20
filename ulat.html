@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
     <title>Catatan Bisnis Ulat</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .slide-up {
             animation: slideUp 0.25s ease-out;
@@ -88,7 +89,7 @@
         <!-- ===== HEADER ===== -->
         <header class="flex justify-between items-center pb-4 mb-4 border-b-2 border-[#d6cbbc]">
             <h1 class="text-xl font-bold text-[#3d352b]">
-                <span class="text-2xl"></span> Bisnis Ulat Hongkong
+                <span class="text-2xl">🐛</span> Bisnis Ulat Hongkong
             </h1>
             <span class="bg-[#3d352b] text-[#f5ede2] px-3 py-1 rounded-full text-xs font-semibold" id="totalTransaksi">
                 0 transaksi
@@ -124,6 +125,9 @@
                 </div>
             </div>
 
+            <!-- RINGKASAN BULAN INI VS BULAN LALU -->
+            <div class="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-[#e8dfd3]" id="cardRingkasan"></div>
+
             <!-- TOMBOL TAMBAH -->
             <button id="btnTambah" class="w-full bg-[#b8860b] hover:bg-[#9e740a] active:scale-95 transition text-white font-semibold py-3.5 rounded-2xl flex items-center justify-center gap-2 mb-4">
                 <span class="text-xl">➕</span> Tambah Transaksi
@@ -146,6 +150,33 @@
                     <!-- diisi JS -->
                 </div>
             </div>
+
+            <!-- GRAFIK BULANAN -->
+            <div class="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-[#e8dfd3]" id="cardGrafik">
+                <p class="text-xs font-semibold text-[#8a7d6b] uppercase tracking-wider mb-2">📊 Grafik Bulanan</p>
+                <div style="height: 180px; position: relative;">
+                    <canvas id="grafikBulanan"></canvas>
+                </div>
+            </div>
+
+            <!-- STATISTIK PENJUALAN -->
+            <div class="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-[#e8dfd3]">
+                <p class="text-xs font-semibold text-[#8a7d6b] uppercase tracking-wider mb-2">💰 Statistik Penjualan Ulat</p>
+                <div class="grid grid-cols-2 gap-2 text-sm" id="statistikContent">
+                    <!-- diisi JS -->
+                </div>
+            </div>
+
+            <!-- KATEGORI PENGELUARAN -->
+            <div class="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-[#e8dfd3]">
+                <p class="text-xs font-semibold text-[#8a7d6b] uppercase tracking-wider mb-2">🏷️ Kategori Pengeluaran</p>
+                <div class="space-y-3 text-sm" id="kategoriContent">
+                    <!-- diisi JS -->
+                </div>
+            </div>
+
+            <!-- PENCARIAN -->
+            <input type="text" id="inputCari" placeholder="🔍 Cari transaksi (mis. 511, huut, jual)..." class="w-full px-4 py-2.5 bg-white border border-[#e8dfd3] rounded-xl text-sm focus:outline-none focus:border-[#b8860b] mb-3" />
 
             <!-- LIST TRANSAKSI -->
             <div class="flex justify-between items-center mb-3">
@@ -191,6 +222,24 @@
                     <!-- diisi JS -->
                 </div>
             </div>
+        </div>
+
+        <!-- ===== BACKUP DATA ===== -->
+        <div class="bg-white rounded-2xl p-4 mt-4 shadow-sm border border-[#e8dfd3]">
+            <p class="text-xs font-semibold text-[#8a7d6b] uppercase tracking-wider mb-2">💾 Backup Data</p>
+            <p class="text-xs text-[#8a7d6b] mb-3">Simpan semua data ke file untuk cadangan (mis. saat pindah HP), atau muat kembali dari file backup.</p>
+            <div class="flex gap-2">
+                <button id="btnExport" class="flex-1 bg-[#3d352b] hover:bg-[#2d2a24] active:scale-95 transition text-white font-semibold py-3 rounded-xl text-sm">
+                    📥 Simpan ke File
+                </button>
+                <button id="btnImport" class="flex-1 bg-white border border-[#d6cbbc] hover:bg-[#f8f3eb] active:scale-95 transition text-[#4d4337] font-semibold py-3 rounded-xl text-sm">
+                    📤 Muat dari File
+                </button>
+            </div>
+            <button id="btnExportCSV" class="w-full mt-2 bg-white border border-[#d6cbbc] hover:bg-[#f8f3eb] active:scale-95 transition text-[#4d4337] font-semibold py-2.5 rounded-xl text-sm">
+                📄 Export Transaksi (CSV)
+            </button>
+            <input type="file" id="fileImport" accept=".json,application/json" class="hidden" />
         </div>
 
         <!-- ============================================================ -->
@@ -281,6 +330,7 @@
         let filterBulan = 'semua';
         let filterKategori = 'semua';
         let showAll = false;
+        let cari = '';
 
         // ================================================================
         //  LOAD & SAVE
@@ -478,6 +528,11 @@
             return 'Rp ' + n.toLocaleString('id-ID');
         }
 
+        function getLocalDateStr() {
+            const now = new Date();
+            return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+        }
+
         function formatTgl(tgl) {
             const d = new Date(tgl + 'T00:00:00');
             const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
@@ -507,6 +562,11 @@
         function renderFilter() {
     const wrap = document.getElementById('filterWrap');
     const bulanList = getBulanList();
+
+    if (filterBulan !== 'semua' && !bulanList.includes(filterBulan)) {
+        filterBulan = 'semua';
+        showAll = false;
+    }
 
     let html = `
         <button class="filter-btn px-4 py-1.5 rounded-full border-2 border-[#d6cbbc] text-sm font-medium ${
@@ -586,6 +646,10 @@
             if (filterBulan !== 'semua') {
                 filtered = filtered.filter(t => getBulanKey(t.tanggal) === filterBulan);
             }
+            if (cari.trim()) {
+                const q = cari.trim().toLowerCase();
+                filtered = filtered.filter(t => (t.deskripsi || '').toLowerCase().includes(q));
+            }
 
             const displayed = showAll ? filtered : filtered.slice(0, 5);
 
@@ -607,7 +671,7 @@
             let html = '';
             displayed.forEach(t => {
                 const isIncome = t.jenis === 'pemasukan';
-                const icon = isIncome ? '' : '';
+                const icon = isIncome ? '💰' : '💸';
                 const amountClass = isIncome ? 'text-green-700' : 'text-red-600';
                 const sign = isIncome ? '+' : '-';
 
@@ -671,6 +735,192 @@
             elSaldo.className = 'text-3xl font-bold ' + (saldo >= 0 ? 'text-green-400' : 'text-red-400');
 
             document.getElementById('totalTransaksi').textContent = transaksi.length + ' transaksi';
+        }
+
+        // ================================================================
+        //  RINGKASAN BULAN INI VS BULAN LALU
+        // ================================================================
+        function renderRingkasan() {
+            const card = document.getElementById('cardRingkasan');
+            const bulanList = getBulanList();
+            if (bulanList.length === 0) {
+                card.classList.add('hidden');
+                return;
+            }
+            card.classList.remove('hidden');
+
+            const sorted = [...bulanList].sort();
+            const bulanIni = sorted[sorted.length - 1];
+            const bulanLalu = sorted.length > 1 ? sorted[sorted.length - 2] : null;
+
+            const hitung = key => {
+                const items = transaksi.filter(t => getBulanKey(t.tanggal) === key);
+                let masuk = 0, keluar = 0;
+                items.forEach(t => {
+                    if (t.jenis === 'pemasukan') masuk += t.jumlah;
+                    else keluar += t.jumlah;
+                });
+                return { masuk, keluar, bersih: masuk - keluar };
+            };
+
+            const a = hitung(bulanIni);
+            const b = bulanLalu ? hitung(bulanLalu) : null;
+
+            const row = (label, val, delta) => {
+                const arrow = delta > 0 ? '▲' : delta < 0 ? '▼' : '•';
+                const cls = delta > 0 ? 'text-green-600' : delta < 0 ? 'text-red-600' : 'text-[#8a7d6b]';
+                return `
+                    <div class="flex justify-between items-center py-1.5 border-b border-[#f0e9df] last:border-0">
+                        <span class="text-sm text-[#4d4337]">${label}</span>
+                        <span class="text-sm font-semibold text-[#2d2a24]">${formatRupiah(val)}</span>
+                        <span class="text-xs font-semibold ${cls} w-20 text-right">${arrow} ${delta === 0 ? '0' : formatRupiah(Math.abs(delta))}</span>
+                    </div>
+                `;
+            };
+
+            card.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-semibold text-[#8a7d6b] uppercase tracking-wider">📈 ${getBulanLabel(bulanIni)} (bulan ini)</span>
+                    <span class="text-xs text-[#8a7d6b]">vs ${bulanLalu ? getBulanLabel(bulanLalu) : '—'}</span>
+                </div>
+                ${row('Pemasukan', a.masuk, b ? a.masuk - b.masuk : 0)}
+                ${row('Pengeluaran', a.keluar, b ? a.keluar - b.keluar : 0)}
+                ${row('Bersih', a.bersih, b ? a.bersih - b.bersih : 0)}
+            `;
+        }
+
+        // ================================================================
+        //  GRAFIK BULANAN
+        // ================================================================
+        let grafikInstance = null;
+
+        function renderGrafik() {
+            const card = document.getElementById('cardGrafik');
+            const canvas = document.getElementById('grafikBulanan');
+            if (typeof Chart === 'undefined' || !canvas) {
+                card.classList.add('hidden');
+                return;
+            }
+
+            const bulanList = getBulanList();
+            if (bulanList.length === 0) {
+                if (grafikInstance) { grafikInstance.destroy(); grafikInstance = null; }
+                card.classList.add('hidden');
+                return;
+            }
+            card.classList.remove('hidden');
+
+            const labels = bulanList.map(getBulanLabel);
+            const masuk = [], keluar = [];
+            bulanList.forEach(key => {
+                let m = 0, k = 0;
+                transaksi.forEach(t => {
+                    if (getBulanKey(t.tanggal) !== key) return;
+                    if (t.jenis === 'pemasukan') m += t.jumlah; else k += t.jumlah;
+                });
+                masuk.push(m);
+                keluar.push(k);
+            });
+
+            if (grafikInstance) {
+                grafikInstance.destroy();
+                grafikInstance = null;
+            }
+
+            grafikInstance = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: 'Pemasukan', data: masuk, backgroundColor: '#16a34a', borderRadius: 6 },
+                        { label: 'Pengeluaran', data: keluar, backgroundColor: '#dc2626', borderRadius: 6 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { callback: v => v >= 1000 ? Math.round(v / 1000) + 'k' : v } }
+                    }
+                }
+            });
+        }
+
+        // ================================================================
+        //  STATISTIK PENJUALAN & KATEGORI PENGELUARAN
+        // ================================================================
+        function parseBeratKg(desc) {
+            const m = String(desc).match(/([\d.,]+)\s*(kg|ons|g|gr|gram|kilogram)/i);
+            if (!m) return null;
+            const num = parseFloat(m[1].replace(',', '.'));
+            if (isNaN(num)) return null;
+            const unit = m[2].toLowerCase();
+            if (unit === 'kg' || unit === 'kilogram') return num;
+            if (unit === 'ons') return num * 0.001;
+            return num / 1000;
+        }
+
+        function kategoriPengeluaran(desc) {
+            const d = String(desc).toLowerCase();
+            const pakan = ['511', '512', 'pollard', 'huut', 'waluh', 'dage', 'wortel'];
+            const peralatan = ['baki', 'triplek', 'reng', 'paku', 'engsel', 'ramkawat', 'kai'];
+            if (pakan.some(k => d.includes(k))) return 'pakan';
+            if (peralatan.some(k => d.includes(k))) return 'peralatan';
+            return 'lainnya';
+        }
+
+        function renderStatistik() {
+            const sales = transaksi.filter(t => t.jenis === 'pemasukan' && /jual/i.test(t.deskripsi));
+            let totalRupiah = 0, totalKg = 0;
+            sales.forEach(t => {
+                totalRupiah += t.jumlah;
+                const kg = parseBeratKg(t.deskripsi);
+                if (kg !== null) totalKg += kg;
+            });
+            const avg = totalKg > 0 ? totalRupiah / totalKg : 0;
+
+            document.getElementById('statistikContent').innerHTML = `
+                <div class="bg-[#f8f3eb] rounded-xl p-2 text-center">
+                    <p class="text-xs text-[#8a7d6b]">Jumlah Jual</p>
+                    <p class="font-bold text-lg text-[#2d2a24]">${sales.length}x</p>
+                </div>
+                <div class="bg-[#f8f3eb] rounded-xl p-2 text-center">
+                    <p class="text-xs text-[#8a7d6b]">Total Penjualan</p>
+                    <p class="font-bold text-lg text-green-700">${formatRupiah(totalRupiah)}</p>
+                </div>
+                <div class="bg-[#f8f3eb] rounded-xl p-2 text-center">
+                    <p class="text-xs text-[#8a7d6b]">Berat Terjual</p>
+                    <p class="font-bold text-lg text-[#2d2a24]">${totalKg.toLocaleString('id-ID', { maximumFractionDigits: 2 })} kg</p>
+                </div>
+                <div class="bg-[#f8f3eb] rounded-xl p-2 text-center">
+                    <p class="text-xs text-[#8a7d6b]">Rata-rata /kg</p>
+                    <p class="font-bold text-lg text-[#b8860b]">${formatRupiah(Math.round(avg))}</p>
+                </div>
+            `;
+
+            const cat = { pakan: 0, peralatan: 0, lainnya: 0 };
+            transaksi.forEach(t => {
+                if (t.jenis === 'pengeluaran') cat[kategoriPengeluaran(t.deskripsi)] += t.jumlah;
+            });
+            const catTotal = cat.pakan + cat.peralatan + cat.lainnya;
+            const catLabel = { pakan: '🌾 Pakan', peralatan: '🛠 Peralatan', lainnya: '📦 Lainnya' };
+            let catHtml = '';
+            ['pakan', 'peralatan', 'lainnya'].forEach(c => {
+                const pct = catTotal > 0 ? Math.round((cat[c] / catTotal) * 100) : 0;
+                catHtml += `
+                    <div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-[#4d4337]">${catLabel[c]}</span>
+                            <span class="font-semibold text-[#2d2a24]">${formatRupiah(cat[c])} <span class="text-xs text-[#8a7d6b]">(${pct}%)</span></span>
+                        </div>
+                        <div class="h-1.5 bg-[#f0e9df] rounded-full mt-1">
+                            <div class="h-1.5 rounded-full ${c === 'pakan' ? 'bg-green-500' : c === 'peralatan' ? 'bg-[#b8860b]' : 'bg-gray-400'}" style="width:${pct}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('kategoriContent').innerHTML = catHtml;
         }
 
         // ================================================================
@@ -755,13 +1005,17 @@
                 filtered = filtered.filter(g => g.kategori === filterKategori);
             }
 
-            // Sort by kategori then gen
+            // Sort by kategori then gen (natural sort agar Gen 10 > Gen 2)
             const kategoriOrder = { 'pindah': 1, 'kepompong': 2, 'kepik': 3, 'panen': 4 };
+            const genNumber = g => {
+                const m = String(g.gen || '').match(/\d+/);
+                return m ? parseInt(m[0], 10) : 0;
+            };
             filtered.sort((a, b) => {
                 if (kategoriOrder[a.kategori] !== kategoriOrder[b.kategori]) {
                     return kategoriOrder[a.kategori] - kategoriOrder[b.kategori];
                 }
-                return a.gen.localeCompare(b.gen);
+                return genNumber(a) - genNumber(b) || a.gen.localeCompare(b.gen);
             });
 
             if (filtered.length === 0) {
@@ -1012,11 +1266,94 @@
         }
 
         // ================================================================
+        //  BACKUP & RESTORE
+        // ================================================================
+        function getTglFile() {
+            const now = new Date();
+            return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+        }
+
+        function downloadJson(nama, data) {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = nama;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportData() {
+            const payload = {
+                app: 'bisnis-ulat-hongkong',
+                tanggal: new Date().toISOString(),
+                transaksi: transaksi,
+                growth: growthData
+            };
+            downloadJson('backup-ulat-hongkong-' + getTglFile() + '.json', payload);
+        }
+
+        function importData(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!data || !Array.isArray(data.transaksi) || !Array.isArray(data.growth)) {
+                        throw new Error('format tidak dikenal');
+                    }
+                    transaksi = data.transaksi;
+                    growthData = data.growth;
+                    saveData();
+                    saveGrowth();
+                    filterBulan = 'semua';
+                    filterKategori = 'semua';
+                    showAll = false;
+                    renderAll();
+                    renderGrowthFilter();
+                    renderGrowth();
+                    alert('Data berhasil dimuat dari file backup!');
+                } catch (err) {
+                    alert('File tidak valid! Pastikan Anda memilih file backup yang benar.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function downloadCsv(nama, rows) {
+            const csv = rows.map(r => r.map(v => {
+                const s = String(v ?? '');
+                return /[";\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+            }).join(';')).join('\r\n');
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = nama;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportCSV() {
+            const rows = [['Tanggal', 'Jenis', 'Deskripsi', 'Jumlah']];
+            [...transaksi].sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal)).forEach(t => {
+                rows.push([t.tanggal, t.jenis === 'pemasukan' ? 'Pemasukan' : 'Pengeluaran', t.deskripsi, t.jumlah]);
+            });
+            downloadCsv('data-ulat-hongkong-' + getTglFile() + '.csv', rows);
+        }
+
+        // ================================================================
         //  RENDER ALL
         // ================================================================
         function renderAll() {
             renderFilter();
             renderRekapBulanan();
+            renderRingkasan();
+            renderGrafik();
+            renderStatistik();
             renderTransaksi();
             renderSaldo();
         }
@@ -1065,7 +1402,7 @@
             });
 
             // ===== KEUANGAN =====
-            const today = new Date().toISOString().split('T')[0];
+            const today = getLocalDateStr();
             document.getElementById('inputTanggal').value = today;
 
             document.getElementById('btnTambah').addEventListener('click', function() {
@@ -1073,7 +1410,7 @@
                 document.getElementById('modalTitle').textContent = 'Tambah Transaksi';
                 document.getElementById('btnHapus').classList.add('hidden');
                 document.getElementById('inputJenis').value = 'pemasukan';
-                document.getElementById('inputTanggal').value = new Date().toISOString().split('T')[0];
+                document.getElementById('inputTanggal').value = getLocalDateStr();
                 document.getElementById('inputDeskripsi').value = '';
                 document.getElementById('inputJumlah').value = '';
                 document.getElementById('modalOverlay').classList.remove('hidden');
@@ -1082,6 +1419,13 @@
             document.getElementById('btnLihatSemua').addEventListener('click', function() {
                 showAll = !showAll;
                 renderAll();
+            });
+
+            document.getElementById('inputCari').addEventListener('input', function() {
+                cari = this.value;
+                showAll = false;
+                renderTransaksi();
+                renderSaldo();
             });
 
             document.getElementById('btnSimpan').addEventListener('click', simpanTransaksi);
@@ -1131,6 +1475,21 @@
             });
             document.getElementById('inputGrowthTgl').addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') simpanGrowth();
+            });
+
+            // ===== BACKUP =====
+            document.getElementById('btnExport').addEventListener('click', exportData);
+            document.getElementById('btnExportCSV').addEventListener('click', exportCSV);
+            document.getElementById('btnImport').addEventListener('click', function() {
+                document.getElementById('fileImport').click();
+            });
+            document.getElementById('fileImport').addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    if (confirm('Muat data dari file? Data saat ini akan diganti.')) {
+                        importData(e.target.files[0]);
+                    }
+                }
+                this.value = '';
             });
         });
     </script>
